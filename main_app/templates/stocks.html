@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}NSE Alpha Terminal{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    // Ensures the tailwind config supports class-based dark mode
+    tailwind.config = { 
+        darkMode: 'class',
+        theme: {
+            extend: {
+                borderRadius: { 'custom': '5px' },
+                colors: {
+                    "market-up": '#10b981',
+                    "market-down": '#f43f5e',
+                }
+            }
+        }
+    }
+</script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Inter:wght@400;700;900&display=swap');
+
+    body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+    
+    /* Terminal UI Specifics */
+    .price-mono { font-family: 'JetBrains Mono', monospace; }
+    
+    /* Standardized Border Radius */
+    .rounded-terminal { border-radius: 5px !important; }
+
+    /* Custom Grid Layout for Stocks */
+    .stock-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr;
+        align-items: center;
+        padding: 8px 12px;
+    }
+
+    #chartdiv { width: 100%; height: 500px; }
+    
+    /* Cleanup amCharts */
+    g[aria-labelledby$="-title"] { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="p-4 max-w-[1800px] mx-auto min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+    
+    <div class="flex items-center justify-between p-4 mb-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-terminal shadow-sm border-l-4 border-blue-600">
+        <div>
+            <h1 class="text-sm font-black tracking-widest uppercase italic">NSE ALPHA<span class="text-blue-600">.CORE</span></h1>
+            <p class="text-[8px] font-bold text-slate-500 uppercase">Live Performance Terminal</p>
+        </div>
+        <div id="last-update" class="text-[10px] font-mono bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-terminal border border-slate-200 dark:border-slate-700">
+            LOADING STREAM...
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+        
+        <div class="xl:col-span-3 flex flex-col gap-[20px]">
+            
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-terminal overflow-hidden flex flex-col shadow-sm">
+                <div class="bg-market-up/10 px-4 py-2 border-b border-market-up/20 flex justify-between items-center">
+                    <span class="text-[10px] font-black text-market-up uppercase tracking-widest">Top Gainers</span>
+                    <span class="h-1.5 w-1.5 rounded-full bg-market-up animate-pulse"></span>
+                </div>
+                <div class="stock-grid bg-slate-50 dark:bg-slate-800/50 text-[8px] font-bold text-slate-500 uppercase border-b border-slate-200 dark:border-slate-800">
+                    <span>Symbol</span> <span class="text-right">Price</span> <span class="text-right">Change</span>
+                </div>
+                <div id="gainers-list" class="divide-y divide-slate-100 dark:divide-slate-800">
+                    </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-terminal overflow-hidden flex flex-col shadow-sm">
+                <div class="bg-market-down/10 px-4 py-2 border-b border-market-down/20 flex justify-between items-center">
+                    <span class="text-[10px] font-black text-market-down uppercase tracking-widest">Top Losers</span>
+                    <span class="h-1.5 w-1.5 rounded-full bg-market-down animate-pulse"></span>
+                </div>
+                <div class="stock-grid bg-slate-50 dark:bg-slate-800/50 text-[8px] font-bold text-slate-500 uppercase border-b border-slate-200 dark:border-slate-800">
+                    <span>Symbol</span> <span class="text-right">Price</span> <span class="text-right">Change</span>
+                </div>
+                <div id="losers-list" class="divide-y divide-slate-100 dark:divide-slate-800">
+                    </div>
+            </div>
+
+        </div>
+
+        <div class="xl:col-span-9 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-terminal p-6 shadow-sm">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Market Visualization / Tick Stream</span>
+                <span class="text-[9px] px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold rounded-terminal border border-blue-200 dark:border-blue-800">OHLCV v2.0</span>
+            </div>
+            <div id="chartdiv" class="bg-slate-50/50 dark:bg-slate-950/50 rounded-terminal"></div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+<script>
+    const stockSymbols = [
+        { s: "RELIANCE", p: 2985.40 }, { s: "TCS", p: 4120.15 }, { s: "HDFCBANK", p: 1450.60 },
+        { s: "INFY", p: 1680.00 }, { s: "ICICIBANK", p: 1082.30 }, { s: "SBIN", p: 760.45 },
+        { s: "BHARTIARTL", p: 1120.00 }, { s: "TATAMOTORS", p: 940.80 }, { s: "WIPRO", p: 485.20 },
+        { s: "ADANIENT", p: 3150.00 }
+    ];
+
+    let masterData = stockSymbols.map(item => ({
+        symbol: item.s, open: item.p, high: item.p + 2, low: item.p - 2, close: item.p, basePrice: item.p
+    }));
+
+    let root, chart, series, xAxis;
+
+    function initChart() {
+        root = am5.Root.new("chartdiv");
+        root.setThemes([am5themes_Animated.new(root)]);
+        chart = root.container.children.push(am5xy.XYChart.new(root, { layout: root.verticalLayout }));
+
+        xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
+            categoryField: "symbol",
+            renderer: am5xy.AxisRendererX.new(root, { minGridDistance: 30 })
+        }));
+        
+        // Auto-adapts label color for Light/Dark mode via CSS variables
+        xAxis.get("renderer").labels.template.setAll({ fill: am5.color(0x64748b), fontSize: 9, fontWeight: "bold" });
+
+        let yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+            renderer: am5xy.AxisRendererY.new(root, { opposite: true })
+        }));
+        yAxis.get("renderer").labels.template.setAll({ fill: am5.color(0x64748b), fontSize: 9 });
+
+        series = chart.series.push(am5xy.CandlestickSeries.new(root, {
+            xAxis: xAxis, yAxis: yAxis,
+            valueYField: "close", openValueYField: "open", lowValueYField: "low", highValueYField: "high",
+            categoryXField: "symbol"
+        }));
+
+        series.columns.template.states.create("riseFromOpen", { fill: am5.color(0x10b981), stroke: am5.color(0x10b981) });
+        series.columns.template.states.create("dropFromOpen", { fill: am5.color(0xf43f5e), stroke: am5.color(0xf43f5e) });
+
+        xAxis.data.setAll(masterData);
+        series.data.setAll(masterData);
+        
+        updateTerminal();
+        setInterval(updateTerminal, 3000);
+    }
+
+    function updateTerminal() {
+        masterData.forEach(s => {
+            s.open = s.close;
+            s.close += (Math.random() - 0.49) * 12;
+            s.high = Math.max(s.open, s.close) + 1;
+            s.low = Math.min(s.open, s.close) - 1;
+            s.changePct = ((s.close - s.basePrice) / s.basePrice * 100).toFixed(2);
+        });
+
+        let sorted = [...masterData].sort((a, b) => b.changePct - a.changePct);
+        let gainers = sorted.slice(0, 5);
+        let losers = sorted.slice(-5).reverse();
+
+        const renderRow = (s, isUp) => `
+            <div class="stock-grid hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-default">
+                <span class="text-[10px] font-bold text-slate-800 dark:text-white">${s.symbol}</span>
+                <span class="text-right price-mono text-[10px] text-slate-600 dark:text-slate-300">${s.close.toFixed(2)}</span>
+                <span class="text-right text-[10px] font-black ${isUp ? 'text-market-up' : 'text-market-down'}">
+                    ${isUp ? '▲' : '▼'}${Math.abs(s.changePct)}%
+                </span>
+            </div>
+        `;
+
+        document.getElementById('gainers-list').innerHTML = gainers.map(s => renderRow(s, true)).join('');
+        document.getElementById('losers-list').innerHTML = losers.map(s => renderRow(s, false)).join('');
+
+        if (series) {
+            series.data.setAll(masterData);
+            xAxis.data.setAll(masterData);
+        }
+        document.getElementById('last-update').innerText = "STREAM SYNC: " + new Date().toLocaleTimeString();
+    }
+    window.addEventListener('load', initChart);
+</script>
+{% endblock %}

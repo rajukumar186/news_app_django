@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Write News Story | People's Voice{% endblock %}
+
+{% block extra_css %}
+<style>
+    .publish-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 15px;
+    }
+
+    .publish-card {
+        background: var(--card-bg);
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px var(--shadow);
+    }
+
+    .form-header {
+        border-bottom: 2px solid var(--bg-color);
+        margin-bottom: 30px;
+        padding-bottom: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: var(--text-color);
+        font-size: 0.95rem;
+    }
+
+    /* --- Input Styling --- */
+    .input-field {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-color);
+        color: var(--text-color);
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .input-field:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+
+    .title-input {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .content-area {
+        min-height: 400px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+    /* --- Image Upload Preview --- */
+    .image-upload-wrapper {
+        border: 2px dashed var(--border-color);
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        position: relative;
+        transition: background 0.2s;
+    }
+
+    .image-upload-wrapper:hover {
+        background: rgba(var(--primary-rgb), 0.02);
+    }
+
+    #image-preview {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+        border-radius: 6px;
+        display: none;
+        margin-top: 15px;
+    }
+
+    .submit-btn {
+        background: var(--primary-color);
+        color: white;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        cursor: pointer;
+        width: 100%;
+        transition: transform 0.1s, opacity 0.2s;
+    }
+
+    .submit-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 600px) {
+        .publish-card { padding: 20px; }
+        .title-input { font-size: 1.2rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="publish-container">
+    <div class="publish-card">
+        <div class="form-header">
+            <h1 style="margin:0;">Create News Post</h1>
+            <p style="color: var(--text-muted);">Share the latest updates with the People's Voice community.</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_title">Headline</label>
+                <input type="text" name="title" id="id_title" 
+                       class="input-field title-input" 
+                       placeholder="Enter a catchy headline..." required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-wrap: wrap;">
+                <div class="form-group">
+                    <label for="id_category">Category</label>
+                    <select name="category" id="id_category" class="input-field" required>
+                        <option value="" disabled selected>Select Category</option>
+                        <option value="World">World</option>
+                        <option value="Tech">Tech</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Stock">Stock</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_image">Featured Image</label>
+                    <input type="file" name="image" id="id_image" 
+                           class="input-field" accept="image/*" 
+                           onchange="previewImage(event)">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <img id="image-preview" src="" alt="Image Preview">
+            </div>
+
+            <div class="form-group">
+                <label for="id_content">Article Content</label>
+                <textarea name="content" id="id_content" 
+                          class="input-field content-area" 
+                          placeholder="Tell your story..." required></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">Publish Story</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function previewImage(event) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            const output = document.getElementById('image-preview');
+            output.src = reader.result;
+            output.style.display = 'block';
+        };
+        if(event.target.files[0]) {
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    }
+</script>
+{% endblock %}
+
+{% block sidebar %}
+<div class="card" style="padding: 20px; border-radius: 8px;">
+    <h3 style="margin-top:0;">Writing Tips</h3>
+    <ul style="padding-left: 18px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+        <li><strong>Be Objective:</strong> Stick to the facts.</li>
+        <li><strong>Check Sources:</strong> Verify your information before publishing.</li>
+        <li><strong>Formatting:</strong> Use double line breaks to start new paragraphs.</li>
+        <li><strong>Image:</strong> Use a horizontal image for the best display.</li>
+    </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Use variables for dynamic themes */
+    .weather-grid {
+        display: grid;
+        grid-template-columns: 1fr; 
+        gap: 24px;
+        padding: 20px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    @media (min-width: 768px) {
+        .weather-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (min-width: 1024px) {
+        .weather-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .weather-card {
+        /* CHANGED: Uses variables from your base.html */
+        background: var(--card-bg, #ffffff); 
+        color: var(--text-main, #1a202c);
+        border: 1px solid var(--border-color, #edf2f7);
+        
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 10px 25px var(--shadow, rgba(0,0,0,0.05));
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .weather-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--primary-color, #3b82f6);
+    }
+
+    .state-name {
+        font-size: 1.5rem;
+        font-weight: 800;
+        /* CHANGED: Dynamic text color */
+        color: var(--text-main, #1a202c); 
+    }
+
+    .metric-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .metric-box {
+        /* CHANGED: Secondary background for dark mode visibility */
+        background: var(--bg-secondary, #f8fafc); 
+        padding: 12px;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .m-label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        /* CHANGED: Muted text variable */
+        color: var(--text-muted, #718096); 
+        letter-spacing: 1px;
+    }
+
+    /* Keep metric colors bright for both modes */
+    .temp { color: #ff4757; }
+    .rain { color: #2e86de; }
+    .wind { color: #2ed573; }
+    .humid { color: #a55eea; }
+
+    /* Helper for the description text */
+    .theme-muted-text {
+        color: var(--text-muted, #666);
+    }
+</style>
+
+<div class="container-fluid py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-5 fw-bold">Weather Analytics</h1>
+        <p class="theme-muted-text">Regional climate overview for the current cycle</p>
+    </div>
+    
+    <div id="weather-wrapper" class="weather-grid">
+        </div>
+</div>
+
+<script>
+    const statesData = [
+        { name: "Maharashtra", temp: "32°C", rain: "12mm", humid: "65%", wind: "14km/h", icon: "☀️" },
+        { name: "Kerala", temp: "28°C", rain: "45mm", humid: "88%", wind: "10km/h", icon: "🌧️" },
+        { name: "Rajasthan", temp: "40°C", rain: "0mm", humid: "15%", wind: "22km/h", icon: "🏜️" },
+        { name: "Himachal", temp: "18°C", rain: "5mm", humid: "40%", wind: "8km/h", icon: "🏔️" },
+        { name: "West Bengal", temp: "30°C", rain: "20mm", humid: "75%", wind: "12km/h", icon: "⛅" },
+        { name: "Tamil Nadu", temp: "34°C", rain: "2mm", humid: "60%", wind: "18km/h", icon: "🌤️" }
+    ];
+
+    const wrapper = document.getElementById('weather-wrapper');
+    
+    statesData.forEach(item => {
+        wrapper.innerHTML += `
+            <div class="weather-card">
+                <div class="state-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <span class="state-name">${item.name}</span>
+                    <span style="font-size: 2rem;">${item.icon}</span>
+                </div>
+                <div class="metric-container">
+                    <div class="metric-box">
+                        <span class="m-label">Temperature</span>
+                        <span class="m-value temp" style="font-weight:700;">${item.temp}</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="m-label">Rainfall</span>
+                        <span class="m-value rain" style="font-weight:700;">${item.rain}</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="m-label">Humidity</span>
+                        <span class="m-value humid" style="font-weight:700;">${item.humid}</span>
+                    </div>
+                    <div class="metric-box">
+                        <span class="m-label">Wind</span>
+                        <span class="m-value wind" style="font-weight:700;">${item.wind}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+</script>
+{% endblock %}

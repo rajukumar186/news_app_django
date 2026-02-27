@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+
+{% block title %}Superadmin Dashboard | People's Voice{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Admin Layout & Header --- */
+    .admin-dashboard {
+        padding: 15px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--primary-color);
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .admin-badge {
+        background: var(--primary-color);
+        color: white;
+        padding: 6px 15px;
+        border-radius: 5px;
+        font-weight: 800;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    /* --- Stats Grid --- */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 30px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        background: var(--card-bg);
+        border-radius: 10px;
+        box-shadow: 0 4px 6px var(--shadow);
+    }
+
+    .stat-card:hover { 
+        transform: translateY(-5px); 
+        box-shadow: 0 8px 20px var(--shadow);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+    }
+
+    /* --- Responsive Table Base --- */
+    .admin-table-container {
+        width: 100%;
+        margin-top: 15px;
+        border-radius: 8px;
+        background: var(--card-bg);
+        overflow: hidden;
+    }
+
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .admin-table th {
+        text-align: left;
+        padding: 15px;
+        background: var(--bg-color);
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .admin-table td {
+        padding: 15px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        vertical-align: middle;
+    }
+
+    /* --- Status Badges --- */
+    .status-pill {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .status-active { background: #d4edda; color: #155724; }
+    .status-pending { background: #fff3cd; color: #856404; }
+
+    /* --- Action Buttons --- */
+    .btn-action {
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--primary-color);
+        color: white;
+        transition: opacity 0.2s;
+        display: inline-block;
+        border: none;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .btn-view { background: var(--text-muted); }
+    .btn-action:hover { opacity: 0.9; color: white; }
+
+    .quick-links-group {
+        display: flex; 
+        gap: 12px; 
+        margin-top: 15px; 
+        flex-wrap: wrap;
+    }
+
+    /* --- MOBILE RESPONSIVE OVERRIDES --- */
+    @media (max-width: 768px) {
+        .admin-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-links-group .btn-action {
+            width: 100%;
+        }
+
+        /* Responsive Table "Card View" */
+        .admin-table, .admin-table thead, .admin-table tbody, .admin-table th, .admin-table td, .admin-table tr {
+            display: block;
+        }
+
+        .admin-table thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+
+        .admin-table tr {
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .admin-table td {
+            border: none;
+            position: relative;
+            padding-left: 50% !important;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+
+        .admin-table td:last-child {
+            border-bottom: 0;
+            text-align: center;
+            padding-left: 15px !important;
+        }
+
+        .admin-table td:before {
+            content: attr(data-label);
+            position: absolute;
+            left: 15px;
+            width: 45%;
+            text-align: left;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .btn-action {
+            width: 100%;
+            margin-top: 5px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="admin-header">
+        <h1 style="margin:0;">Control Panel</h1>
+        <div class="admin-badge">SUPERUSER ACCESS</div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-number">{{ total_users }}</span>
+            <span class="stat-label">Total Users</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ active_promos }}</span>
+            <span class="stat-label">Live Promotions</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ pending_promos }}</span>
+            <span class="stat-label" style="color: var(--primary-color);">Pending Ads</span>
+        </div>
+    </div>
+
+    <div class="card" style="padding: 20px; background: var(--card-bg); border-radius: 8px; box-shadow: 0 2px 10px var(--shadow);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">Promotion Requests</h3>
+            <a href="/admin/main_app/promotion/" class="btn-action btn-view">Core Admin View</a>
+        </div>
+        
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Business Name</th>
+                        <th>Plan Type</th>
+                        <th>Submission Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for promo in all_promotions %}
+                    <tr>
+                        <td data-label="Business"><strong>{{ promo.business_name }}</strong></td>
+                        <td data-label="Plan">{{ promo.get_plan_display }}</td>
+                        <td data-label="Date">{{ promo.created_at|date:"M d, Y" }}</td>
+                        <td data-label="Status">
+                            {% if promo.is_active %}
+                                <span class="status-pill status-active">ACTIVE</span>
+                            {% else %}
+                                <span class="status-pill status-pending">PENDING</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Action">
+                            <a href="/admin/main_app/promotion/{{ promo.id }}/change/" class="btn-action">Review</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            No promotion requests found in the system.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 30px; padding: 20px; background: var(--card-bg); border-radius: 8px;">
+        <h3>System Management</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Quick access to core Django management modules.</p>
+        <div class="quick-links-group">
+            <a href="/admin/auth/user/" class="btn-action btn-view">Manage Users</a>
+            <a href="/admin/your_app/newspost/" class="btn-action btn-view">Moderate News</a>
+            <a href="/admin/" class="btn-action">Django Core Admin</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div class="card" style="margin-bottom: 20px; padding: 15px; background: var(--card-bg); border-radius: 8px;">
+    <h3 class="sidebar-title">Admin Insight</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+        You are currently viewing the custom dashboard. Use the <strong>Review</strong> button to approve pending business advertisements.
+    </p>
+</div>
+
+<div class="card" style="padding: 15px; background: var(--card-bg); border-radius: 8px;">
+    <h3 class="sidebar-title">Infrastructure</h3>
+    <ul style="list-style: none; font-size: 0.85rem; padding: 0; margin: 0;">
+        <li style="padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+            <span style="color: var(--text-muted);">Environment:</span> 
+            <strong style="color: #27ae60; float: right;">Production</strong>
+        </li>
+        <li style="padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+            <span style="color: var(--text-muted);">Database:</span> 
+            <strong style="float: right;">Connected</strong>
+        </li>
+        <li style="padding: 8px 0;">
+            <span style="color: var(--text-muted);">Last Sync:</span> 
+            <strong style="float: right;">Just Now</strong>
+        </li>
+    </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile | {{ user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* --- Main Layout: Flex Row --- */
+    .profile-page-wrapper {
+        display: flex;
+        flex-direction: row; /* Aligns sections side-by-side */
+        gap: 30px;
+        align-items: flex-start; /* Prevents cards from stretching vertically */
+        padding: 20px 0;
+        width: 100%;
+    }
+
+    /* Left Section: Upload (Flexible) */
+    .upload-card {
+        flex: 1; /* Grows to fill available space */
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 15px var(--shadow);
+    }
+
+    /* Right Section: Profile Card (Fixed Width) */
+    .profile-sidebar {
+        flex: 0 0 380px; /* Stays exactly 380px wide */
+        background: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-top:20px;
+        box-shadow: 0 4px 15px var(--shadow);
+        border: 1px solid var(--border-color);
+        position: sticky;
+        top: 100px; /* Sticks to top when scrolling base.html */
+    }
+
+    /* --- UI Components --- */
+    .profile-banner {
+        height: 100px;
+        background: linear-gradient(135deg, var(--primary-color), #2c3e50);
+    }
+
+    .profile-picture-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-top: -50px;
+    }
+
+    .profile-img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 4px solid var(--card-bg);
+        background: var(--bg-color);
+        object-fit: cover;
+    }
+
+    .profile-info {
+        padding: 20px;
+        text-align: center;
+    }
+
+    .profile-details {
+        text-align: left;
+        background: var(--bg-color);
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+    }
+
+    .detail-item:last-child { border-bottom: none; }
+
+    .detail-item .label {
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    /* --- Form Styling --- */
+    .upload-form p {
+        margin-bottom: 20px;
+        color: var(--text-main);
+    }
+
+    .upload-form input, .upload-form textarea, .upload-form select {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-color);
+        color: var(--text-main);
+        margin-top: 8px;
+    }
+
+    .btn-publish {
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 15px 25px;
+        border-radius: 8px;
+        font-weight: 800;
+        cursor: pointer;
+        width: 100%;
+        font-size: 1rem;
+        transition: opacity 0.2s;
+    }
+
+    /* --- Responsive Fix: Stack on Mobile --- */
+    @media (max-width: 1024px) {
+        .profile-page-wrapper {
+            flex-direction: column;
+        }
+        .profile-sidebar {
+            flex: none;
+            width: 100%;
+            order: -1; /* Shows profile info first on mobile */
+            position: static;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page-wrapper">
+    
+    <section class="upload-card">
+        <h3 style="margin-bottom: 25px;  font-weight: 800; color: var(--text-main);">
+            📤 Post a New Clip
+        </h3>
+        <form method="POST" enctype="multipart/form-data" class="upload-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn-publish">Publish Clip</button>
+        </form>
+    </section>
+
+    <aside class="profile-sidebar">
+        <div class="profile-banner"></div>
+
+        <div class="profile-picture-wrapper">
+            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random&size=128" 
+                 alt="Profile" class="profile-img">
+        </div>
+
+        <div class="profile-info">
+            <h1 style="font-size: 1.5rem; color: var(--text-main); font-weight: 800;">
+                {{ user.first_name|default:user.username }}
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Member since {{ user.date_joined|date:"F Y" }}
+            </p>
+
+            <div class="profile-details">
+                <div class="detail-item">
+                    <span class="label">Username</span>
+                    <span>{{ user.username }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Email</span>
+                    <span>{{ user.email|default:"Not provided" }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Account</span>
+                    <span>{% if user.is_staff %}Staff{% else %}Standard{% endif %}</span>
+                </div>
+            </div>
+
+            <a href="#" style="color: var(--primary-color); text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                Edit Profile Settings
+            </a>
+        </div>
+    </aside>
+
+</div>
+{% endblock %}

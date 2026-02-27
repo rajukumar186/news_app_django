@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    /* 1. Root Variables (Inherited from base.html usually, but defined here for safety) */
+    :root {
+        --gap: 20px;
+        --sidebar-width: 260px;
+    }
+
+    /* 2. Main Layout: Adaptive Grid */
+    .home-grid-layout {
+        display: grid;
+        /* Desktop: 3 columns | Tablet: 2 columns | Mobile: 1 column */
+        grid-template-columns: var(--sidebar-width) 1fr var(--sidebar-width);
+        gap: var(--gap);
+        padding: 20px;
+        max-width: 1600px;
+        margin: 0 auto;
+        align-items: start;
+    }
+
+    /* 3. Center Column & Cards */
+    .center-column {
+        min-width: 0; /* Prevents flex/grid blowouts */
+    }
+
+    .upload-card {
+        background: var(--card-bg);
+        padding: clamp(15px, 5vw, 25px); /* Fluid padding */
+        border-radius: 15px;
+        box-shadow: 0 4px 12px var(--shadow);
+        border: 1px solid var(--border-color);
+        margin-bottom: 30px;
+    }
+
+    .upload-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Handling Django's {{ form.as_p }} */
+    .upload-form p {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        color: var(--text-main);
+    }
+
+    .upload-form input, 
+    .upload-form textarea, 
+    .upload-form select {
+        width: 100%;
+        box-sizing: border-box;
+        background: var(--bg-color);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .btn-publish {
+        padding: 12px 24px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: transform 0.2s, opacity 0.2s;
+        align-self: flex-start;
+    }
+
+    .btn-publish:active { transform: scale(0.98); }
+
+    /* 4. Responsive Slider */
+    .slider-wrapper {
+        position: relative;
+        padding: 10px 0;
+        overflow: hidden;
+    }
+
+    .slider-track {
+        display: flex;
+        gap: 20px;
+        transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        will-change: transform;
+    }
+
+    .slider-item {
+        /* Default 3 items on desktop */
+        flex: 0 0 calc(33.333% - 14px); 
+        min-width: 280px;
+        background: var(--card-bg);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px var(--shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .slider-item video {
+        width: 100%;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+        display: block;
+    }
+
+    .video-info { padding: 15px; }
+
+    /* 5. Navigation Buttons */
+    .nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px var(--shadow);
+    }
+
+    .nav-btn:hover { background: var(--primary-color); color: #fff; }
+    .prev-btn { left: 5px; }
+    .next-btn { right: 5px; }
+
+    /* 6. Ad Slots & Sidebars */
+    .sidebar-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        position: sticky;
+        top: 80px;
+    }
+
+    .empty-ad-card {
+        background: var(--card-bg);
+        border: 2px dashed var(--border-color);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: var(--text-muted);
+        position: relative;
+    }
+
+    .ad-label {
+        font-size: 0.65rem;
+        font-weight: 800;
+        background: var(--bg-color);
+        padding: 2px 6px;
+        border-radius: 4px;
+        position: absolute;
+        top: 8px;
+    }
+
+    /* --- RESPONSIVE MEDIA QUERIES --- */
+
+    @media (max-width: 1200px) {
+        .home-grid-layout {
+            grid-template-columns: 240px 1fr; /* Hide right sidebar */
+        }
+        .sidebar-column.right { display: none; }
+    }
+
+    @media (max-width: 900px) {
+        .home-grid-layout {
+            grid-template-columns: 1fr; /* Stack everything */
+            padding: 10px;
+        }
+        .sidebar-column.left { display: none; }
+        
+        .slider-item {
+            flex: 0 0 85%; /* Show part of next card to indicate scroll */
+        }
+
+        .nav-btn { display: none; } /* Use touch scroll on mobile */
+        .slider-track {
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+        }
+        .slider-item { scroll-snap-align: start; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-grid-layout">
+    
+  
+
+    <main class="center-column">
+      
+
+        <section style="margin: 0px 0;">
+         
+            
+            <div class="slider-wrapper">
+                <button class="nav-btn prev-btn" onclick="moveSlide(-1)" aria-label="Previous">❮</button>
+                <button class="nav-btn next-btn" onclick="moveSlide(1)" aria-label="Next">❯</button>
+                
+                <div class="slider-track" id="sliderTrack">
+                    {% for video in videos %}
+                        <div class="slider-item">
+                            <video muted playsinline onmouseover="this.play()" onmouseout="this.pause()">
+                                <source src="{{ video.video_file.url }}" type="video/mp4">
+                            </video>
+                            <div class="video-info">
+                                <h4>{{ video.title }}</h4>
+                                <small style="color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                                    📍 {{ video.uploader_location|default:"India" }}
+                                </small>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div style="width: 100%; text-align: center; padding: 40px; color: var(--text-muted);">
+                            <p>No clips available at the moment.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <section class="dynamic-news-container">
+        <h4 style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; text-transform: uppercase; border-left: 3px solid var(--primary-color); padding-left: 10px;">
+            Discover More
+        </h4>
+        
+        <div class="news-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px;">
+            {% for post in posts %}
+            <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 100%;">
+                <div style="height: 140px; overflow: hidden; position: relative;">
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <div style="width: 100%; height: 100%; background: var(--bg-color); display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">No Image</span>
+                        </div>
+                    {% endif %}
+                    <span style="position: absolute; bottom: 5px; right: 5px; background: var(--primary-color); color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 3px; font-weight: bold;">
+                        {{ post.category }}
+                    </span>
+                </div>
+    
+                <div style="padding: 12px; flex-grow: 1; display: flex; flex-direction: column;">
+                    <h5 style="font-size: 0.95rem; line-height: 1.3; margin-bottom: 8px; height: 2.6em; overflow: hidden;">
+                        {{ post.title }}
+                    </h5>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; flex-grow: 1;">
+                        {{ post.content|truncatewords:10 }}
+                    </p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: auto;">
+                        <span style="font-size: 0.65rem; color: var(--text-muted);">{{ post.created_at|date:"M d" }}</span>
+                        <a href="#" style="font-size: 0.7rem; color: var(--primary-color); text-decoration: none; font-weight: bold;">Read More →</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+                <p>No stories found in the database.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    </main>
+
+    <aside class="sidebar-column right">
+        <h4 style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Sponsored</h4>
+        {% for i in "1"|make_list %}
+        <div class="empty-ad-card" style="height: 150px;">
+            <span class="ad-label">AD SLOT</span>
+        </div>
+        {% endfor %}
+    </aside>
+
+</div>
+
+<script>
+    let currentSlide = 0;
+
+    function moveSlide(direction) {
+        const track = document.getElementById('sliderTrack');
+        const items = document.querySelectorAll('.slider-item');
+        if (items.length === 0) return;
+
+        // Dynamic calculation based on current viewport
+        const itemWidth = items[0].offsetWidth + 20; // width + gap
+        const containerWidth = track.parentElement.offsetWidth;
+        const visibleItems = Math.round(containerWidth / itemWidth);
+        const maxSlides = items.length - visibleItems;
+
+        currentSlide += direction;
+
+        // Loop logic
+        if (currentSlide > maxSlides) currentSlide = 0;
+        if (currentSlide < 0) currentSlide = maxSlides > 0 ? maxSlides : 0;
+
+        track.style.transform = `translateX(-${currentSlide * itemWidth}px)`;
+    }
+
+    // Reset slider on window resize to prevent alignment issues
+    window.addEventListener('resize', () => {
+        currentSlide = 0;
+        document.getElementById('sliderTrack').style.transform = 'translateX(0)';
+    });
+</script>
+{% endblock %}

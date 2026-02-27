@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Promotion | People's Voice{% endblock %}
+
+{% block extra_css %}
+<style>
+    .promo-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 0 15px;
+    }
+
+    .form-card {
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px var(--shadow);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        color: var(--text-color);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-color);
+        color: var(--text-color);
+        font-size: 1rem;
+    }
+
+    /* --- Custom Plan Radio Buttons --- */
+    .plan-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 10px;
+    }
+
+    .plan-option {
+        position: relative;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+    }
+
+    .plan-option:hover {
+        border-color: var(--primary-color);
+        background: rgba(var(--primary-rgb), 0.05);
+    }
+
+    .plan-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .plan-option input[type="radio"]:checked + .plan-content {
+        color: var(--primary-color);
+    }
+
+    .plan-option:has(input[type="radio"]:checked) {
+        border-color: var(--primary-color);
+        background: rgba(var(--primary-rgb), 0.1);
+    }
+
+    .plan-name {
+        display: block;
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+    }
+
+    .plan-price {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    /* --- Image Preview --- */
+    #image-preview {
+        width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        margin-top: 10px;
+        display: none;
+        border-radius: 8px;
+        border: 1px dashed var(--border-color);
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 15px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        margin-top: 20px;
+        transition: opacity 0.2s;
+    }
+
+    .submit-btn:hover {
+        opacity: 0.9;
+    }
+
+    @media (max-width: 600px) {
+        .form-card { padding: 20px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="promo-container">
+    <div class="form-card">
+        <h2 style="margin-top: 0;">Boost Your Business</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">Fill out the details below to submit your promotion for review.</p>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_business_name">Business Name</label>
+                <input type="text" name="business_name" id="id_business_name" class="form-control" placeholder="e.g. Tony's Pizza" required>
+            </div>
+
+            <div class="form-group">
+                <label for="id_promotion_title">Promotion Headline</label>
+                <input type="text" name="promotion_title" id="id_promotion_title" class="form-control" placeholder="e.g. 50% Off All Pizzas this Weekend!" required>
+            </div>
+
+            <div class="form-group">
+                <label for="id_target_url">Target Website URL</label>
+                <input type="url" name="target_url" id="id_target_url" class="form-control" placeholder="https://yourwebsite.com" required>
+                <small style="color: var(--text-muted);">Users will be redirected here when they click your ad.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="id_ad_image">Ad Creative (Image)</label>
+                <input type="file" name="ad_image" id="id_ad_image" class="form-control" accept="image/*" onchange="previewImage(event)" required>
+                <img id="image-preview" src="" alt="Preview">
+            </div>
+
+            <div class="form-group">
+                <label>Select Your Promotion Plan</label>
+                <div class="plan-selector">
+                    <label class="plan-option">
+                        <input type="radio" name="plan" value="basic" checked>
+                        <div class="plan-content">
+                            <span class="plan-name">Sidebar</span>
+                            <span class="plan-price">7 Days — $10</span>
+                        </div>
+                    </label>
+
+                    <label class="plan-option">
+                        <input type="radio" name="plan" value="premium">
+                        <div class="plan-content">
+                            <span class="plan-name">Featured</span>
+                            <span class="plan-price">3 Days — $25</span>
+                        </div>
+                    </label>
+
+                    <label class="plan-option">
+                        <input type="radio" name="plan" value="gold">
+                        <div class="plan-content">
+                            <span class="plan-name">Full Page</span>
+                            <span class="plan-price">1 Day — $50</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit for Review</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function previewImage(event) {
+        const reader = new FileReader();
+        reader.onload = function() {
+            const output = document.getElementById('image-preview');
+            output.src = reader.result;
+            output.style.display = 'block';
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+</script>
+{% endblock %}
+
+{% block sidebar %}
+<div class="card" style="padding: 15px; background: var(--card-bg); border-radius: 8px;">
+    <h3 class="sidebar-title">Submission Info</h3>
+    <ul style="padding-left: 20px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+        <li>All ads are reviewed within 24 hours.</li>
+        <li>Images should be high resolution (PNG or JPG).</li>
+        <li>Payment instructions will be sent to your email after approval.</li>
+    </ul>
+</div>
+{% endblock %}

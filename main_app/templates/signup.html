@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* Aligning perfectly with your base.html variables */
+    .signup-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 85vh; /* Centers the card vertically */
+        padding: 20px;
+    }
+
+    .signup-card {
+        background: var(--card-bg); /* Inherited from base.html */
+        border: 1px solid var(--border-color); /* Inherited from base.html */
+        color: var(--text-main); /* Inherited from base.html */
+        
+        width: 100%;
+        max-width: 400px;
+        padding: 35px;
+        border-radius: 12px;
+        box-shadow: 0 8px 30px var(--shadow);
+        transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .signup-card h2 {
+        text-align: center;
+        margin-bottom: 10px;
+        font-weight: 700;
+        font-size: 1.8rem;
+    }
+
+    .signup-card p {
+        text-align: center;
+        color: var(--text-muted);
+        margin-bottom: 25px;
+        font-size: 0.9rem;
+    }
+
+    /* Form Layout */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+    }
+
+    /* Input styling - Dynamic with Theme */
+    input[type="email"], 
+    input[type="password"] {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-color); /* Uses base background for inputs */
+        color: var(--text-main);
+        font-size: 1rem;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+
+    /* Submit Button */
+    .btn-auth {
+        width: 100%;
+        padding: 14px;
+        background: var(--primary-color, #c0392b); /* Fallback to your red if not set */
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        margin-top: 10px;
+    }
+
+    .btn-auth:hover {
+        opacity: 0.9;
+    }
+
+    /* Error and Help Styling */
+    .error-list {
+        color: #e74c3c;
+        font-size: 0.75rem;
+        margin-top: 5px;
+        list-style: none;
+        padding: 0;
+    }
+
+    .help-text {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        margin-top: 5px;
+        display: block;
+        line-height: 1.4;
+    }
+</style>
+
+<div class="signup-wrapper">
+    <div class="signup-card">
+        <h2>Join Us</h2>
+        <p>Create your account with just your email.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    
+                    {% if field.help_text %}
+                        <small class="help-text">{{ field.help_text|safe }}</small>
+                    {% endif %}
+                    
+                    {% for error in field.errors %}
+                        <ul class="error-list">
+                            <li>⚠️ {{ error }}</li>
+                        </ul>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn-auth">Sign Up</button>
+        </form>
+
+        <div style="margin-top: 20px; text-align: center; font-size: 0.85rem;">
+            <span style="color: var(--text-muted);">Already have an account?</span> 
+            <a href="{% url 'login' %}" style="color: var(--primary-color); text-decoration: none; font-weight: bold;">Login</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

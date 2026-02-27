@@ -1,0 +1,446 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}The People's Voice - World News{% endblock %}</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 1. VARIABLES & THEMES --- */
+        :root {
+            --primary-color: #c0392b; 
+            --bg-color: #f4f7f6;
+            --header-bg: #ffffff;
+            --card-bg: #ffffff;
+            --text-main: #1a1a1a;
+            --text-muted: #5a6c7d;
+            --border-color: #e1e8ed;
+            --shadow: rgba(0,0,0,0.05);
+            --nav-text: #1a1a1a;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --header-bg: #1a1a1a;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #a0aec0;
+            --border-color: #333;
+            --shadow: rgba(0,0,0,0.4);
+            --nav-text: #e0e0e0;
+        }
+
+        /* --- 2. RESET & BASE STYLES --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        /* --- 3. GOOGLE TRANSLATE HACKS --- */
+        .goog-te-banner-frame, .goog-te-banner, .goog-gt-tt, .goog-te-balloon-frame, .skiptranslate, #goog-gt-tt {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        #google_translate_element { display: none !important; }
+
+        /* --- 4. HEADER & NAVIGATION --- */
+        header { 
+            background-color: var(--header-bg); 
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px var(--shadow); 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+        }
+
+        .navbar { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0.8rem 20px; 
+        }
+
+        .logo { 
+            font-size: 1.5rem; 
+            font-weight: 800; 
+            color: var(--text-main);
+            text-decoration: none; 
+            letter-spacing: -1px;
+            z-index: 1001;
+        }
+        .logo span { color: var(--primary-color); }
+
+        /* Hamburger Menu */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            z-index: 1001;
+            padding: 5px;
+        }
+        .menu-toggle span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: var(--text-main);
+            border-radius: 3px;
+            transition: 0.3s;
+        }
+
+        .nav-links { list-style: none; display: flex; gap: 20px; align-items: center; }
+        .nav-links a, .nav-links button { 
+            text-decoration: none; 
+            color: var(--nav-text); 
+            font-weight: 600; 
+            font-size: 0.9rem;
+            transition: color 0.2s; 
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px 0;
+            display: inline-flex;
+            align-items: center;
+        }
+        .nav-links a:hover, .nav-links button:hover { color: var(--primary-color); }
+
+        /* --- 5. UI COMPONENTS --- */
+        .lang-select {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 2px solid var(--primary-color);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .theme-toggle {
+            background: var(--primary-color) !important;
+            color: white !important;
+            padding: 8px 16px !important;
+            border-radius: 20px !important;
+            white-space: nowrap;
+        }
+
+        /* --- 6. LAYOUT --- */
+        .container { 
+            max-width: 1400px; 
+            margin: 20px auto; 
+            padding: 0 20px; 
+            display: grid; 
+            grid-template-columns: 1fr 320px; 
+            gap: 30px; 
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        .sidebar-title {
+            font-weight: 800;
+            font-size: 1rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        footer { 
+            background-color: var(--header-bg); 
+            text-align: center; 
+            padding: 40px 20px; 
+            margin-top: 60px; 
+            border-top: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        /* --- 7. PROMO BAR --- */
+        .header-promo-bar {
+            background-color: var(--bg-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 5px 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            height: 35px;
+        }
+        
+        .promo-ticker {
+            display: flex;
+            white-space: nowrap;
+            animation: ticker 40s linear infinite;
+        }
+        
+        .promo-item {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 100px;
+        }
+        
+        @keyframes ticker {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* --- 8. MOBILE RESPONSIVE QUERIES --- */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr; /* Sidebar stacks below content */
+            }
+        }
+
+        @media (max-width: 850px) {
+            .menu-toggle { display: flex; }
+
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                flex-direction: column;
+                background-color: var(--header-bg);
+                width: 280px;
+                height: 100vh;
+                padding: 80px 25px;
+                box-shadow: -5px 0 15px var(--shadow);
+                transition: 0.4s ease-in-out;
+                align-items: flex-start;
+                z-index: 999;
+                overflow-y: auto;
+            }
+
+            .nav-links.active { right: 0; }
+
+            .nav-links li {
+                width: 100%;
+                border-bottom: 1px solid var(--border-color);
+                padding: 12px 0;
+            }
+
+            .lang-select { width: 100%; }
+            
+            .navbar { padding: 0.6rem 15px; }
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body class="{% if request.COOKIES.theme == 'dark' %}dark-mode{% endif %}">
+
+    <header>
+        <div class="navbar">
+            <a href="/" class="logo">TEST PROJECT <span> </span></a>
+            
+            <button class="menu-toggle" id="mobile-menu-btn" aria-label="Toggle Navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            
+            <ul class="nav-links" id="nav-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/weather">Weather</a></li>
+                <li><a href="/stocks">Stocks</a></li>
+                
+                {% if user.is_authenticated %}
+                    <li><a href="/news">Publish News Artical</a></li>
+                    <li><a href="/log">Visitors</a></li>
+                    <li><a href="{% url 'profile' %}">My Profile</a></li>
+                    <li><a href="{% url 'superadmin' %}">Dashboard</a></li>
+                    <li>
+                        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                {% endif %}
+
+                <li>
+                    <select id="custom-lang-selector" class="lang-select">
+                        <option value="">Language</option>
+                        <option value="en">English</option>
+                        <option value="hi">Hindi</option>
+                        <option value="bn">Bengali</option>
+                        <option value="te">Telugu</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                    </select>
+                </li>
+                
+                <li>
+                    <button id="theme-toggle" class="theme-toggle">
+                        <span id="theme-btn-text">
+                            {% if request.COOKIES.theme == 'dark' %}☀️ Light{% else %}🌙 Dark{% endif %}
+                        </span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </header>
+
+    {% if header_promos %}
+    <div class="header-promo-bar">
+        <div class="promo-ticker">
+            {% for promo in header_promos %}
+                <a href="{{ promo.target_url }}" target="_blank" class="promo-item">
+                    <strong>{{ promo.business_name }}:</strong> {{ promo.promotion_title }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="container">
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+
+        <aside>
+            {% block sidebar1 %}
+            <div class="card">
+                <h3 class="sidebar-title">Trending Now</h3>
+                <p style="color: var(--text-muted);">Stay tuned for live updates...</p>
+            </div>
+            {% endblock %}
+
+            {% block sidebar %}
+                {% for promo in active_promos %}
+                <div class="card ad-card" style="padding: 10px; border: 1px solid var(--primary-color); position: relative;">
+                    <span style="position: absolute; top: 0; right: 10px; font-size: 0.6rem; color: var(--text-muted);">SPONSORED</span>
+                    <a href="{{ promo.target_url }}" target="_blank" style="text-decoration: none; color: inherit;">
+                        {% if promo.ad_image %}
+                            <img src="{{ promo.ad_image.url }}" alt="{{ promo.business_name }}" style="width: 100%; border-radius: 8px; margin-bottom: 10px;">
+                        {% endif %}
+                        <h4 style="font-size: 1rem; margin-bottom: 5px;">{{ promo.promotion_title }}</h4>
+                        <p style="font-size: 0.8rem; opacity: 0.8;">{{ promo.business_name }}</p>
+                    </a>
+                </div>
+                
+                <div class="card">
+                    <h3 class="sidebar-title">Partner with us</h3>
+                    <div style="height: 100px; background: var(--bg-color); border: 2px dashed var(--border-color); display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 10px;">
+                        <span style="color: var(--text-muted); font-size: 0.8rem; text-align:center;">Want to see your business here?</span>
+                    </div>
+                    <a href="{% url 'promotion' %}" style="color: var(--primary-color); font-weight: bold; font-size: 0.8rem;">Create a Promotion →</a>
+                </div>
+                {% endfor %}
+            {% endblock %}
+        </aside>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 The People's Voice. All rights reserved.</p>
+        
+    </footer>
+
+    <div id="google_translate_element"></div>
+
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'hi,en,bn,te,es,fr',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const themeBtn = document.getElementById('theme-toggle');
+        const themeText = document.getElementById('theme-btn-text');
+        const langSelector = document.getElementById('custom-lang-selector');
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const navMenu = document.getElementById('nav-menu');
+        
+        // --- MOBILE MENU TOGGLE ---
+        menuBtn.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            const spans = menuBtn.querySelectorAll('span');
+            // Animate hamburger to X
+            if(navMenu.classList.contains('active')) {
+                spans[0].style.transform = "rotate(45deg) translate(5px, 6px)";
+                spans[1].style.opacity = "0";
+                spans[2].style.transform = "rotate(-45deg) translate(5px, -6px)";
+            } else {
+                spans[0].style.transform = "none";
+                spans[1].style.opacity = "1";
+                spans[2].style.transform = "none";
+            }
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!navMenu.contains(e.target) && !menuBtn.contains(e.target) && navMenu.classList.contains('active')) {
+                menuBtn.click();
+            }
+        });
+
+        // --- THEME LOGIC ---
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                if (themeText) themeText.innerHTML = '☀️ Light';
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (themeText) themeText.innerHTML = '🌙 Dark';
+            }
+        };
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) applyTheme(savedTheme);
+
+        themeBtn.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('dark-mode');
+            const currentTheme = isDark ? 'dark' : 'light';
+            localStorage.setItem('theme', currentTheme);
+            document.cookie = `theme=${currentTheme};path=/;max-age=31536000`;
+            applyTheme(currentTheme);
+        });
+
+        // --- TRANSLATION LOGIC ---
+        if (langSelector) {
+            langSelector.addEventListener('change', function() {
+                const targetLang = this.value;
+                if (!targetLang) return;
+
+                const forceTranslate = () => {
+                    const googleCombo = document.querySelector('.goog-te-combo');
+                    if (googleCombo) {
+                        googleCombo.value = targetLang;
+                        googleCombo.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        setTimeout(forceTranslate, 200);
+                    }
+                };
+                forceTranslate();
+            });
+        }
+    });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
