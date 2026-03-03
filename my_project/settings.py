@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-=07uxzmgj06x#ft7*uasdd9zw@&_=sor+))lrdz54w4*e#bz98
 # SECURITY WARNING: don't run with debug turned on in production!
 
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['https://news-app-django-enyk.onrender.com/']
 # After login, go to the home page (or whatever name you gave your home URL)
