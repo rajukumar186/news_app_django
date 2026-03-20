@@ -34,6 +34,8 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('about/', views.about, name='about'),
     path('weather/', views.weather_view, name='weather'),
+    path('fullnews/<slug:slug>/', views.news_detail, name='news_detail'),
+    
     path('get_news/', views.get_trending_news, name='news'),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('signup/', views.signup_view, name='signup'),

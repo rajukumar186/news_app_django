@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
 import requests
 # Create your views here.
 from django.http import JsonResponse
@@ -47,6 +47,11 @@ def toggle_theme(request):
     response.set_cookie('theme', new_theme, max_age=31536000, path='/')
     
     return response
+ 
+def news_detail(request, slug):
+    # This finds the post or returns a 404 error if it doesn't exist
+    post = get_object_or_404(NewsPost, slug=slug)
+    return render(request, 'full_artical.html', {'post': post})
 @login_required
 def create_news(request):
     # Optional: Restrict to staff or specific users
@@ -104,7 +109,7 @@ def create_promotion(request):
             promo.save()
 
             messages.success(request, "Your promotion has been submitted! We will review it shortly.")
-            return redirect('dashboard') # Redirect to a page of your choice
+            return redirect('home') # Redirect to a page of your choice
         else:
             messages.error(request, "Please fill out all required fields and upload an image.")
 

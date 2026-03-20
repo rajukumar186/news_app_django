@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
- 
-
+from django.utils.text import slugify 
+import uuid
 class VisitorLog(models.Model):
     ip_address = models.GenericIPAddressField()
     page_visited = models.CharField(max_length=255)
@@ -50,9 +50,18 @@ class NewsPost(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     content = models.TextField()
-    category = models.CharField(max_length=50, choices=[('World', 'World'), ('Tech', 'Tech'), ('Sports', 'Sports'), ('Stock', 'Stock')])
+    slug = models.SlugField(unique=True, blank=True, null=True) # Add this
+    category = models.CharField(max_length=50, choices=[('World', 'World'), ('Tech', 'Tech'), ('Sports', 'Sports'), ('Stock', 'Stock'),('Crime','Crime'),('Intertainment','Intertainment')])
     image = models.ImageField(upload_to='news_pics/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    def save(self, *args, **kwargs):
+        base_slug = slugify(self.title)
+        # Check if slug exists, if so, add a random string
+        if NewsPost.objects.filter(slug=base_slug).exists():
+            self.slug = f"{base_slug}-{str(uuid.uuid4())[:8]}"
+        else:
+            self.slug = base_slug
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title

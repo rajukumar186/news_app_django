@@ -1,0 +1,44 @@
+ 
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} - News Portal{% endblock %}
+
+{% block content %}
+<main style="background-color: var(--bg-color); min-height: 100vh; padding: 40px 20px;">
+    <div class="container" style="max-width: 800px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        
+        <span style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: var(--primary-light); color: var(--primary-color); font-size: 0.8rem; font-weight: bold; margin-bottom: 15px;">
+            {{ post.category }}
+        </span>
+
+        <h1 style="font-size: 2.5rem; color: var(--text-color); margin-bottom: 10px; line-height: 1.2;">
+            {{ post.title }}
+        </h1>
+
+        <div style="display: flex; align-items: center; gap: 15px; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">
+            <span><strong>By {{ post.author }}</strong></span>
+            <span>•</span>
+            <span>{{ post.created_at|date:"F d, Y" }}</span>
+        </div>
+
+        {% if post.image %}
+        <div style="margin-bottom: 30px; border-radius: 8px; overflow: hidden;">
+            <img src="{{ post.image.url }}" alt="{{ post.title }}" style="width: 100%; height: auto; display: block;">
+        </div>
+        {% endif %}
+
+        <hr style="border: 0; border-top: 1px solid var(--border-color); margin-bottom: 30px;">
+
+        <div style="line-height: 1.8; font-size: 1.15rem; color: var(--text-color); white-space: pre-wrap;">
+            {{ post.content|linebreaks }}
+        </div>
+
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+            <a href="{% url 'home' %}" style="text-decoration: none; color: var(--primary-color); font-weight: bold; display: inline-flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                Back to Feed
+            </a>
+        </div>
+    </div>
+</main>
+{% endblock %}

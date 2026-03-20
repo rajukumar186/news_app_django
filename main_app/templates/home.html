@@ -257,13 +257,24 @@
                         {{ post.title }}
                     </h5>
                     <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; flex-grow: 1;">
-                        {{ post.content|truncatewords:10 }}
+                        <span id="short-{{ forloop.counter }}">
+                            {{ post.content|truncatewords:10 }}
+                        </span>
+                    
+                        <span id="full-{{ forloop.counter }}" style="display: none;">
+                            {{ post.content }}
+                        </span>
                     </p>
+                    
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: auto;">
-                        <span style="font-size: 0.65rem; color: var(--text-muted);">{{ post.created_at|date:"M d" }}</span>
-                        <a href="#" style="font-size: 0.7rem; color: var(--primary-color); text-decoration: none; font-weight: bold;">Read More →</a>
+                         
+                        
+                     <a href="{% url 'news_detail' post.slug %}" 
+                       style="font-size: 0.7rem; color: var(--primary-color); text-decoration: none; font-weight: bold;">
+                       Read Full Story →
+                    </a>
                     </div>
-                </div>
+               </div>
             </div>
             {% empty %}
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
@@ -286,6 +297,23 @@
 </div>
 
 <script>
+    function toggleReadMore(postId) {
+    const shortText = document.getElementById('short-' + postId);
+    const fullText = document.getElementById('full-' + postId);
+    const linkText = document.getElementById('link-' + postId);
+
+    if (fullText.style.display === "none") {
+            // Show full text
+            fullText.style.display = "inline";
+            shortText.style.display = "none";
+            linkText.innerHTML = "Show Less ←";
+        } else {
+            // Show short text
+            fullText.style.display = "none";
+            shortText.style.display = "inline";
+            linkText.innerHTML = "Read More →";
+        }
+    }
     let currentSlide = 0;
 
     function moveSlide(direction) {

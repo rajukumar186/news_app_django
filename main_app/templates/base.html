@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}The People's Voice - World News{% endblock %}</title>
-    
+    <title>{% block title %}The People's Era - World News{% endblock %}</title>
+ 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
     <style>
@@ -248,7 +248,7 @@
 
     <header>
         <div class="navbar">
-            <a href="/" class="logo">TEST PROJECT <span> </span></a>
+            <a href="/" class="logo">THE PEOPLE'S <span> ERA</span></a>
             
             <button class="menu-toggle" id="mobile-menu-btn" aria-label="Toggle Navigation">
                 <span></span>
@@ -336,7 +336,7 @@
                         <p style="font-size: 0.8rem; opacity: 0.8;">{{ promo.business_name }}</p>
                     </a>
                 </div>
-                
+                {% endfor %}
                 <div class="card">
                     <h3 class="sidebar-title">Partner with us</h3>
                     <div style="height: 100px; background: var(--bg-color); border: 2px dashed var(--border-color); display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 10px;">
@@ -344,13 +344,13 @@
                     </div>
                     <a href="{% url 'promotion' %}" style="color: var(--primary-color); font-weight: bold; font-size: 0.8rem;">Create a Promotion →</a>
                 </div>
-                {% endfor %}
+                
             {% endblock %}
         </aside>
     </div>
 
     <footer>
-        <p>&copy; 2026 The People's Voice. All rights reserved.</p>
+        <p>&copy; 2026 The People's Era. All rights reserved.</p>
         
     </footer>
 
