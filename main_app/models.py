@@ -45,7 +45,23 @@ class Promotion(models.Model):
     def __str__(self):
         return f"{self.business_name} - {self.plan}"
     
-    
+class ContactMessage(models.Model):
+    # Defining the choices for the dropdown
+    SUBJECT_CHOICES = [
+        ('General Inquiry', 'General Inquiry'),
+        ('Video Upload Help', 'Video Upload Help'),
+        ('Advertising Opportunities', 'Advertising Opportunities'),
+        ('Copyright Report', 'Copyright Report'),
+    ]
+
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    subject = models.CharField(max_length=50, choices=SUBJECT_CHOICES)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True) # Useful for tracking when it was sent
+
+    def __str__(self):
+        return f"{self.name} - {self.subject}"   
 class NewsPost(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
@@ -62,6 +78,8 @@ class NewsPost(models.Model):
         else:
             self.slug = base_slug
         super().save(*args, **kwargs)
+        
+
 
     def __str__(self):
         return self.title

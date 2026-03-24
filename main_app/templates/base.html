@@ -7,6 +7,7 @@
     <title>{% block title %}The People's Era - World News{% endblock %}</title>
  
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
         /* --- 1. VARIABLES & THEMES --- */
@@ -171,6 +172,56 @@
             border-top: 1px solid var(--border-color);
             font-size: 0.9rem;
         }
+        
+        
+        /* --- FOOTER SOCIALS --- */
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .follow-text {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            display: block;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .social-links a {
+            color: var(--text-main);
+            background: var(--bg-color);
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+        }
+        
+        .social-links a:hover {
+            background: var(--primary-color);
+            color: white !important;
+            transform: translateY(-3px);
+            border-color: var(--primary-color);
+        }
+        
+        /* Specific adjustment for dark mode borders */
+        body.dark-mode .social-links a {
+            background: #2a2a2a;
+        }
 
         /* --- 7. PROMO BAR --- */
         .header-promo-bar {
@@ -248,8 +299,11 @@
 
     <header>
         <div class="navbar">
-            <a href="/" class="logo">THE PEOPLE'S <span> ERA</span></a>
-            
+            {% load static %}
+
+            <a href="/" class="logo">
+                <img src="{% static 'images/logo_t.png' %}" alt="The People's Era Logo" style="height: 50px;"> 
+            </a>
             <button class="menu-toggle" id="mobile-menu-btn" aria-label="Toggle Navigation">
                 <span></span>
                 <span></span>
@@ -273,6 +327,8 @@
                         </form>
                     </li>
                 {% else %}
+                    <li><a href="/about">About </a></li>
+                    <li><a href="/contact">Contact</a></li>
                     <li><a href="{% url 'login' %}">Login</a></li>
                 {% endif %}
 
@@ -351,6 +407,9 @@
 
     <footer>
         <p>&copy; 2026 The People's Era. All rights reserved.</p>
+            
+     
+ 
         
     </footer>
 

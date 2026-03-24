@@ -16,7 +16,7 @@ from .forms import VideoUploadForm
 
 from django.contrib.auth.decorators import login_required,user_passes_test
  
-from .models import Promotion, NewsPost, VisitorLog,VideoPost # Import your models
+from .models import Promotion, NewsPost, VisitorLog,VideoPost,ContactMessage # Import your models
 from django.contrib.auth.models import User
 
 from .forms import EmailSignUpForm
@@ -213,9 +213,25 @@ def log_view(request):
     logs = VisitorLog.objects.all().order_by('-timestamp')[:50]
     return render(request, 'log.html', {'logs': logs})
 def contact(request):
-    # Fetch the last 50 visits, newest first
-     
-    return render(request, 'contact.html' )
+    if request.method == "POST":
+        # Extract data from the POST request using the 'name' attribute from your HTML
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+
+        # Create and save the object in the database
+        ContactMessage.objects.create(
+            name=name,
+            email=email,
+            subject=subject,
+            message=message
+        )
+        
+        # Redirect or show a success message
+        return render(request, 'contact.html', {'success': True})
+
+    return render(request, 'contact.html')
 
 def about(request):
     # Fetch the last 50 visits, newest first
