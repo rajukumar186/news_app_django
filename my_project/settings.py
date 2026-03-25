@@ -25,19 +25,32 @@ SECRET_KEY = "django-insecure-=07uxzmgj06x#ft7*uasdd9zw@&_=sor+))lrdz54w4*e#bz98
 # SECURITY WARNING: don't run with debug turned on in production!
 
 
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['https://news-app-django-enyk.onrender.com/']
+ALLOWED_HOSTS = ['*']
 # After login, go to the home page (or whatever name you gave your home URL)
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home' 
 
 # If they try to access a protected page without logging in, send them here:
 LOGIN_URL = 'login'
-
+site_url='home'
 # Application definition
 
+# settings.py
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtpout.secureserver.net'
+EMAIL_PORT = 465 # Or 587
+EMAIL_USE_SSL = True # Use TLS=True if using Port 587
+EMAIL_HOST_USER = 'support@thepeoplesera.com'
+EMAIL_HOST_PASSWORD = 'Thepeoplesera@2026'
+DEFAULT_FROM_EMAIL = 'support@thepeoplesera.com'
+
+
+
+
 INSTALLED_APPS = [
+    'jazzmin',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -47,6 +60,20 @@ INSTALLED_APPS = [
     'main_app',
   
 ]
+
+
+JAZZMIN_SETTINGS = {
+    # Path to the logo (relative to STATIC_URL)
+    "site_logo": "images/logo_t.png", 
+    "site_url": site_url,
+    # Logo to display on the login screen
+    "login_logo": "images/logo_t.png",
+    
+    # Square logo for the sidebar (when collapsed)
+    "site_logo_classes": "img-circle",
+    
+    
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

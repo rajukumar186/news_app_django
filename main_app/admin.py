@@ -1,8 +1,8 @@
 from django.contrib import admin
 from .models import VisitorLog, VideoPost
-admin.site.site_header = "The People's Era Admin"       # Text in the top blue bar
+admin.site.site_header = ""       # Text in the top blue bar
 admin.site.site_title = "Admin Portal"                    # Text in the browser tab
-admin.site.index_title = "Website Systems Management"
+admin.site.index_title = "Welcome to the Super Admin Dashboard"
 from .models import Promotion
 
 from django.utils.html import format_html
@@ -11,7 +11,7 @@ from .models import NewsPost,ContactMessage
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
     # Fields to display in the list view
-    list_display = ('name', 'email', 'subject', 'created_at')
+    list_display = ('name', 'email', 'subject','message', 'created_at')
     
     # Add a sidebar filter for subjects and dates
     list_filter = ('subject', 'created_at')

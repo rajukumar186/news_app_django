@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - The Peoples Era{% endblock %}
+
+{% block content %}
+<div style="max-width: 450px; margin: 40px auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background-color: #ffffff;">
+    <h2 style="text-align: center; color: #2d3748; margin-bottom: 20px;">Join The Peoples Era</h2>
+    
+    <p style="text-align: center; font-size: 14px; color: #718096; margin-bottom: 25px;">
+        Enter your email address to receive a verification link and set your password.
+    </p>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">
+                Email Address
+            </label>
+            {{ form.email }}
+            
+            {% for error in form.email.errors %}
+                <p style="color: #e53e3e; font-size: 12px; margin-top: 4px;">{{ error }}</p>
+            {% endfor %}
+
+            {% if form.non_field_errors %}
+                {% for error in form.non_field_errors %}
+                    <p style="color: #e53e3e; font-size: 12px; margin-top: 4px;">{{ error }}</p>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <button type="submit" style="width: 100%; background-color: #3182ce; color: white; border: none; padding: 12px; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer;">
+            Verify Email
+        </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px; font-size: 14px;">
+        <p>Already have an account? <a href="{% url 'login' %}" style="color: #3182ce; text-decoration: none;">Log In</a></p>
+    </div>
+</div>
+{% endblock %}

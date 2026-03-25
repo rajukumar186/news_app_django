@@ -12,26 +12,92 @@ from django.conf import settings
 from ipware import get_client_ip
 import ipinfo
 from .forms import VideoUploadForm
-
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+ 
 
 from django.contrib.auth.decorators import login_required,user_passes_test
  
 from .models import Promotion, NewsPost, VisitorLog,VideoPost,ContactMessage # Import your models
 from django.contrib.auth.models import User
 
-from .forms import EmailSignUpForm
+# from .forms import EmailSignUpForm
+
+
+#updated code based on validation
+
+import uuid
+from django.shortcuts import render, redirect
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from .forms import SignupEmailForm  # The form we discussed
+from .utils import send_verification_invite # Your email function
+
+User = get_user_model()
 
 def signup_view(request):
     if request.method == 'POST':
-        form = EmailSignUpForm(request.POST)
+        form = SignupEmailForm(request.POST)
         if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'Account created for {username}!')
-            return redirect('login') # Redirect to your login page
+            email = form.cleaned_data.get('email')
+            
+            # Check if user exists, otherwise create a placeholder user
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    'username': email.split('@')[0] + str(uuid.uuid4())[:8],
+                    'is_active': False
+                }
+            )
+            
+            if created or not user.is_active:
+                send_verification_invite(user)
+                return render(request, 'registration/signup_done.html', {'email': email})
+            else:
+                # User exists and is already active
+                return render(request, 'registration/signup.html', {
+                    'form': form, 
+                    'error': "This email is already verified. Please log in."
+                })
     else:
-        form = EmailSignUpForm()
-    return render(request, 'signup.html', {'form': form})
+        form = SignupEmailForm()
+    return render(request, 'registration/signup.html', {'form': form})
+
+def set_password_confirm(request, uidb64, token):
+    """ The view users land on from their email """
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            password = request.POST.get('password')
+            user.set_password(password)
+            user.is_active = True # Activate the user now
+            user.save()
+            return redirect('login')
+        
+        return render(request, 'registration/set_password_form.html')
+    else:
+        return render(request, 'registration/link_invalid.html')
+
+# def signup_view(request):
+#     if request.method == 'POST':
+#         form = EmailSignUpForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             username = form.cleaned_data.get('username')
+#             messages.success(request, f'Account created for {username}!')
+#             return redirect('login') # Redirect to your login page
+#     else:
+#         form = EmailSignUpForm()
+#     return render(request, 'signup.html', {'form': form})
 
 def toggle_theme(request):
     # Get the current theme from cookies, default to 'light'
@@ -237,6 +303,27 @@ def about(request):
     # Fetch the last 50 visits, newest first
      
     return render(request, 'about.html' )
+
+
+
+def send_verification_invite(user):
+    # Create the secure token
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    
+    # The URL the user clicks in the email
+    link = f"https://thepeoplesera.com/set-password/{uid}/{token}/"
+    
+    subject = "Verify your account - The Peoples Era"
+    message = f"Welcome! Please click the link below to set your password and verify your email:\n\n{link}"
+    
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        fail_silently=False,
+    )
 def get_trending_news(request):
     # 1. Initialize GNews
     google_news = GNews(language='en', country='US', period='7d', max_results=10)

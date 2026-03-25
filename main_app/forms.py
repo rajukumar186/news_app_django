@@ -10,6 +10,9 @@ from .models import VideoPost
 from .models import Promotion
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 class VideoUploadForm(forms.ModelForm):
     class Meta:
         model = VideoPost
@@ -17,22 +20,30 @@ class VideoUploadForm(forms.ModelForm):
         
         
 
-class EmailSignUpForm(UserCreationForm):
-    email = forms.EmailField(required=True)
+# class EmailSignUpForm(UserCreationForm):
+#     email = forms.EmailField(required=True)
+
+#     class Meta:
+#         model = User
+#         # We only show the email field. 
+#         # Password and Confirm Password are included by UserCreationForm automatically.
+#         fields = ("email",)
+
+#     def save(self, commit=True):
+#         user = super().save(commit=False)
+#         user.username = self.cleaned_data["email"]  # Sync username with email
+#         if commit:
+#             user.save()
+#         return user
+class SignupEmailForm(forms.ModelForm):
+    email = forms.EmailField(
+        required=True, 
+        widget=forms.EmailInput(attrs={'style': 'width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 4px;'})
+    )
 
     class Meta:
         model = User
-        # We only show the email field. 
-        # Password and Confirm Password are included by UserCreationForm automatically.
-        fields = ("email",)
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.username = self.cleaned_data["email"]  # Sync username with email
-        if commit:
-            user.save()
-        return user
-
+        fields = ['email']
 class PromotionForm(forms.ModelForm):
     class Meta:
         model = Promotion

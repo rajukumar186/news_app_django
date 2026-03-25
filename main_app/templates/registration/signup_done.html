@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Verify Your Email - The Peoples Era{% endblock %}
+
+{% block content %}
+<div style="max-width: 550px; margin: 60px auto; padding: 40px; text-align: center; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+    
+    <div style="font-size: 60px; margin-bottom: 20px;">
+        📩
+    </div>
+
+    <h2 style="color: #2d3748; font-size: 28px; margin-bottom: 15px;">Check your email!</h2>
+    
+    <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+        We've sent a verification link to <strong style="color: #3182ce;">{{ email }}</strong>. 
+        Please click the link in that email to set your password and activate your account.
+    </p>
+
+    <div style="background-color: #ebf8ff; border-left: 4px solid #3182ce; padding: 15px; margin-bottom: 25px; text-align: left;">
+        <p style="margin: 0; font-size: 14px; color: #2c5282;">
+            <strong>Don't see the email?</strong><br>
+            Check your spam or "Promotions" folder. If it still hasn't arrived after 5 minutes, try signing up again.
+        </p>
+    </div>
+
+    <a href="{% url 'login' %}" style="display: inline-block; color: #3182ce; text-decoration: none; font-weight: 600; font-size: 15px;">
+        &larr; Back to Login
+    </a>
+</div>
+{% endblock %}
