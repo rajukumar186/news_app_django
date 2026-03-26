@@ -35,9 +35,67 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .forms import SignupEmailForm  # The form we discussed
-from .utils import send_verification_invite # Your email function
+from .utils import send_verification_invite,send_password_reset_email # Your email function
 
 User = get_user_model()
+ 
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django.contrib.sites.shortcuts import get_current_site
+from django.shortcuts import render, redirect
+
+from django.shortcuts import render, redirect
+
+def password_reset_request(request):
+    if request.method == "POST":
+        email = request.POST.get('email')
+        user = User.objects.filter(email=email).first()
+        
+        if user:
+            # Call our new helper function
+            # send_password_reset_email(request, user)
+            pass
+        # We always redirect to 'done' for security (so users can't fish for emails)
+        return redirect("password_reset_done")
+        
+    return render(request, 'registration/password_reset.html')
+
+def password_reset_done(request):
+    return render(request, 'registration/password_reset_done.html')
+# View 1: Request the reset
+# def password_reset_request(request):
+#     if request.method == "POST":
+#         email = request.POST.get('email')
+#         user = User.objects.filter(email=email).first()
+#         # if user:
+#         #     pass
+#             # send_password_reset_email(user)
+#         # Always show the 'done' message so hackers don't know if an email exists
+#         return render(request, 'registration/password_reset_done.html', {'email': email})
+#     return render(request, 'registration/password_reset.html')
+
+# View 2: The actual reset (Using your existing logic)
+def password_reset_confirm(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        if request.method == 'POST':
+            password = request.POST.get('password')
+            user.set_password(password)
+            user.save()
+            return redirect('login') 
+        return render(request, 'registration/password_reset_confirm.html')
+    else:
+        return render(request, 'registration/link_invalid.html')
+    
 
 def signup_view(request):
     if request.method == 'POST':
@@ -55,7 +113,8 @@ def signup_view(request):
             )
             
             if created or not user.is_active:
-                send_verification_invite(user)
+                # send_verification_invite(user)
+                #comment only testing purpose
                 return render(request, 'registration/signup_done.html', {'email': email})
             else:
                 # User exists and is already active
@@ -78,6 +137,12 @@ def set_password_confirm(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         if request.method == 'POST':
             password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+
+            if password != confirm_password:
+                return render(request, 'registration/set_password_form.html', {
+                    'error': "Passwords do not match. Please try again."
+                })
             user.set_password(password)
             user.is_active = True # Activate the user now
             user.save()
@@ -87,17 +152,9 @@ def set_password_confirm(request, uidb64, token):
     else:
         return render(request, 'registration/link_invalid.html')
 
-# def signup_view(request):
-#     if request.method == 'POST':
-#         form = EmailSignUpForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             username = form.cleaned_data.get('username')
-#             messages.success(request, f'Account created for {username}!')
-#             return redirect('login') # Redirect to your login page
-#     else:
-#         form = EmailSignUpForm()
-#     return render(request, 'signup.html', {'form': form})
+ 
+
+
 
 def toggle_theme(request):
     # Get the current theme from cookies, default to 'light'
@@ -216,7 +273,7 @@ def profile_view(request):
             video_instance.uploader_device = request.META.get('HTTP_USER_AGENT', 'Unknown')
             
             video_instance.save() # Now save everything to DB
-            return redirect('profile')
+            return redirect('home')
     else:
         form = VideoUploadForm()
         return render(request, 'profile.html', {'form': form})

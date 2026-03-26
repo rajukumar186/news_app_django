@@ -16,7 +16,7 @@ User = get_user_model()
 class VideoUploadForm(forms.ModelForm):
     class Meta:
         model = VideoPost
-        fields = ['title', 'video_file']
+        fields = ['title','caption', 'video_file']
         
         
 

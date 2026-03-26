@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Link Invalid - The People's Era{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 60px auto; padding: 40px; text-align: center; border-radius: 12px;">
+    
+    <div style="font-size: 60px; color: var(--primary-color); margin-bottom: 20px;">
+        <i class="fas fa-exclamation-circle"></i>
+    </div>
+
+    <h2 style="color: var(--text-main); font-size: 1.5rem; font-weight: 800; margin-bottom: 15px;">
+        Invalid Activation Link
+    </h2>
+    
+    <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.6; margin-bottom: 25px;">
+        We’re sorry, but the link you followed is no longer active. This usually happens if the link has already been used or has expired.
+    </p>
+
+    <div style="background: var(--bg-color); border-radius: 8px; padding: 20px; margin-bottom: 30px; text-align: left; border: 1px solid var(--border-color);">
+        <p style="font-size: 0.9rem; color: var(--text-main); margin-bottom: 10px; font-weight: 600;">
+            What can you do?
+        </p>
+        <ul style="color: var(--text-muted); font-size: 0.85rem; padding-left: 20px; line-height: 1.8;">
+            <li>Check if you have already activated your account.</li>
+            <li>Ensure you copied the entire URL from your email.</li>
+            <li>Request a new link by signing up again.</li>
+        </ul>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        <a href="{% url 'signup' %}" 
+           style="background: var(--primary-color); color: white; padding: 14px; text-decoration: none; border-radius: 8px; font-weight: 800; transition: opacity 0.2s;">
+            Sign Up Again
+        </a>
+        
+        <a href="{% url 'login' %}" 
+           style="color: var(--text-main); text-decoration: none; font-size: 0.9rem; font-weight: 600; padding: 10px;">
+            <i class="fas fa-arrow-left"></i> Back to Login
+        </a>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+    /* Hover effect for the primary button */
+    .card a:first-of-type:hover {
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% endblock %}

@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-
+import os
+from dotenv import load_dotenv 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,17 +21,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-=07uxzmgj06x#ft7*uasdd9zw@&_=sor+))lrdz54w4*e#bz98"
+ 
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-
-DEBUG = True
-
-ALLOWED_HOSTS = ['*']
+ 
 # After login, go to the home page (or whatever name you gave your home URL)
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'home' 
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
 
 # If they try to access a protected page without logging in, send them here:
 LOGIN_URL = 'login'
@@ -38,13 +36,25 @@ site_url='home'
 # Application definition
 
 # settings.py
+# 1. Add this import
+
+# 2. Load the .env file
+load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 3. Replace hardcoded values with os.getenv()
+SECRET_KEY = os.getenv('SECRET_KEY')
+DEBUG = os.getenv('DEBUG') == 'True'
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+
+# 4. Update Email Settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtpout.secureserver.net'
-EMAIL_PORT = 465 # Or 587
-EMAIL_USE_SSL = True # Use TLS=True if using Port 587
-EMAIL_HOST_USER = 'support@thepeoplesera.com'
-EMAIL_HOST_PASSWORD = 'Thepeoplesera@2026'
-DEFAULT_FROM_EMAIL = 'support@thepeoplesera.com'
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 
 
@@ -64,10 +74,9 @@ INSTALLED_APPS = [
 
 JAZZMIN_SETTINGS = {
     # Path to the logo (relative to STATIC_URL)
-    "site_logo": "images/logo_t.png", 
+    "site_logo": "images/logo.png", 
     "site_url": site_url,
     # Logo to display on the login screen
-    "login_logo": "images/logo_t.png",
     
     # Square logo for the sidebar (when collapsed)
     "site_logo_classes": "img-circle",

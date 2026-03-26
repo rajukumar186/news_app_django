@@ -22,7 +22,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    
     
     path('', views.home, name='home'),
     path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
@@ -35,19 +35,40 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('weather/', views.weather_view, name='weather'),
     path('fullnews/<slug:slug>/', views.news_detail, name='news_detail'),
-    # path(
-    #     'set-password/<str:uidb64>/<str:token>/', 
-    #     views.SetPasswordView.as_view(), 
-    #     name='password_set_confirm'
-    # ),
+    path(
+        'set-password/<str:uidb64>/<str:token>/', 
+        views.set_password_confirm, 
+        name='set_password_confirm'
+    ),
     path('get_news/', views.get_trending_news, name='news'),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('signup/', views.signup_view, name='signup'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('password-reset/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset.html',success_url=reverse_lazy('password_reset_done')), name='password_reset'),
-    path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
     
+    #password forget
+   path('forgot-password/', views.password_reset_request, name='password_reset_new'),
+    
+    # 2. THE FIX: You MUST define this exact name to stop the Admin redirect
+    path('forgot-password/done/', 
+         auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), 
+         name='password_reset_done'),
+
+    # 3. The link from the email (needed for the next step)
+    path('reset/<uidb64>/<token>/', 
+         auth_views.PasswordResetConfirmView.as_view(template_name="registration/password_reset_confirm.html"), 
+         name='password_reset_confirm'),
+    
+    
+    
+    
+    
+    # path('forgot-password/', views.password_reset_request, name='password_reset_new'),
+    # path('reset-password-confirm/<str:uidb64>/<str:token>/', views.password_reset_confirm, name='password_reset_confirm'),
+    
+    # path('password-reset/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset.html',success_url=reverse_lazy('password_reset_done')), name='password_reset_new'),
+    # path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
+    # path('password-reset/done/', views.password_reset, name='password_reset_done'),
     path('log/', views.log_view, name='log'),
     path('api/stocks/', views.get_stock_data, name='stock_api'),
- 
+    path("admin/", admin.site.urls),
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

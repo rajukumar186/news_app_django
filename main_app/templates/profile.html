@@ -134,9 +134,10 @@
 {% block content %}
 <div class="profile-page-wrapper">
     
+    {% if user.is_authenticated and user.is_superuser %}
     <section class="upload-card">
-        <h3 style="margin-bottom: 25px;  font-weight: 800; color: var(--text-main);">
-            📤 Post a New Clip
+        <h3 style="margin-bottom: 25px; font-weight: 800; color: var(--text-main);">
+            Post a New Clip
         </h3>
         <form method="POST" enctype="multipart/form-data" class="upload-form">
             {% csrf_token %}
@@ -144,7 +145,7 @@
             <button type="submit" class="btn-publish">Publish Clip</button>
         </form>
     </section>
-
+    {% endif %}
     <aside class="profile-sidebar">
         <div class="profile-banner"></div>
 

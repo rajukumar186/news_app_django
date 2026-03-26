@@ -15,7 +15,9 @@ class VisitorLog(models.Model):
 # models.py
 class VideoPost(models.Model):
     title = models.CharField(max_length=100)
+    caption= models.TextField(null=True)
     video_file = models.FileField(upload_to='videos/')
+    
     uploaded_at = models.DateTimeField(auto_now_add=True)
     
     # Metadata Fields

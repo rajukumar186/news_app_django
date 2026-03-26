@@ -1,30 +1,61 @@
 {% extends "base.html" %}
 
-{% block title %}Verify Your Email - The Peoples Era{% endblock %}
+{% block title %}Verify Your Email - The People's Era{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Centers the card within the main column without breaking the sidebar */
+    .verify-container {
+        max-width: 550px;
+        margin: 60px auto;
+        padding: 40px;
+        text-align: center;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 10px 15px var(--shadow);
+    }
+
+    /* Theme-aware alert box for the "Don't see email?" section */
+    .notice-box {
+        background-color: var(--bg-color); /* Subtle contrast from card */
+        border-left: 4px solid var(--primary-color);
+        padding: 15px;
+        margin-bottom: 25px;
+        text-align: left;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="max-width: 550px; margin: 60px auto; padding: 40px; text-align: center; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+<div class="verify-container">
     
     <div style="font-size: 60px; margin-bottom: 20px;">
         📩
     </div>
 
-    <h2 style="color: #2d3748; font-size: 28px; margin-bottom: 15px;">Check your email!</h2>
+    <h2 style="color: var(--text-main); font-size: 28px; margin-bottom: 15px;">Check your email!</h2>
     
-    <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
-        We've sent a verification link to <strong style="color: #3182ce;">{{ email }}</strong>. 
+    <p style="color: var(--text-muted); font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+        We've sent a verification link to <strong style="color: var(--primary-color);">{{ email }}</strong>. 
         Please click the link in that email to set your password and activate your account.
     </p>
 
-    <div style="background-color: #ebf8ff; border-left: 4px solid #3182ce; padding: 15px; margin-bottom: 25px; text-align: left;">
-        <p style="margin: 0; font-size: 14px; color: #2c5282;">
-            <strong>Don't see the email?</strong><br>
-            Check your spam or "Promotions" folder. If it still hasn't arrived after 5 minutes, try signing up again.
+    <div class="notice-box">
+        <p style="margin: 0; font-size: 14px; color: var(--text-main);">
+            <strong style="color: var(--primary-color);">Don't see the email?</strong><br>
+            <span style="color: var(--text-muted);">
+                Check your spam or "Promotions" folder. If it still hasn't arrived after 5 minutes, try signing up again.
+            </span>
         </p>
     </div>
 
-    <a href="{% url 'login' %}" style="display: inline-block; color: #3182ce; text-decoration: none; font-weight: 600; font-size: 15px;">
+    <a href="{% url 'login' %}" style="display: inline-block; color: var(--primary-color); text-decoration: none; font-weight: 800; font-size: 15px;">
         &larr; Back to Login
     </a>
 </div>
 {% endblock %}
+
+{% comment %} 
+    Leave sidebar blocks out so your Ads from base.html show up automatically! 
+{% endcomment %}

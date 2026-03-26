@@ -1,42 +1,72 @@
 {% extends "base.html" %}
 
-{% block title %}Sign Up - The Peoples Era{% endblock %}
+{% block title %}Sign Up - The People's Era{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 1. Ensure the layout handles the sidebar correctly */
+    .container {
+        grid-template-columns: 1fr 320px !important; /* Keep sidebar space for ads */
+    }
+
+    /* 2. Style the signup card */
+    .signup-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        padding: 30px;
+        border-radius: 12px;
+        max-width: 450px;
+        margin: 40px auto; /* Centers the form in the main column */
+        box-shadow: 0 4px 15px var(--shadow);
+    }
+
+    .signup-card h2 { color: var(--text-main); text-align: center; margin-bottom: 20px; }
+    
+    /* 3. Style Django Form Inputs for Dark Mode */
+    .signup-card input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        background: var(--bg-color);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+    }
+
+    @media (max-width: 1024px) {
+        .container { grid-template-columns: 1fr !important; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div style="max-width: 450px; margin: 40px auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background-color: #ffffff;">
-    <h2 style="text-align: center; color: #2d3748; margin-bottom: 20px;">Join The Peoples Era</h2>
-    
-    <p style="text-align: center; font-size: 14px; color: #718096; margin-bottom: 25px;">
-        Enter your email address to receive a verification link and set your password.
-    </p>
-
+<div class="signup-card">
+    <h2>Join The People's Era</h2>
     <form method="post" novalidate>
         {% csrf_token %}
-        
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568;">
-                Email Address
-            </label>
+        <div style="margin-bottom: 15px;">
+            <label style="color: var(--text-main); font-weight: 600;">Email Address</label>
             {{ form.email }}
-            
             {% for error in form.email.errors %}
-                <p style="color: #e53e3e; font-size: 12px; margin-top: 4px;">{{ error }}</p>
+                <small style="color: var(--primary-color);">{{ error }}</small>
             {% endfor %}
-
-            {% if form.non_field_errors %}
-                {% for error in form.non_field_errors %}
-                    <p style="color: #e53e3e; font-size: 12px; margin-top: 4px;">{{ error }}</p>
-                {% endfor %}
-            {% endif %}
         </div>
-
-        <button type="submit" style="width: 100%; background-color: #3182ce; color: white; border: none; padding: 12px; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer;">
+        <button type="submit" style="width: 100%; background: var(--primary-color); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">
             Verify Email
         </button>
-    </form>
-
-    <div style="text-align: center; margin-top: 20px; font-size: 14px;">
-        <p>Already have an account? <a href="{% url 'login' %}" style="color: #3182ce; text-decoration: none;">Log In</a></p>
+        <div style="text-align: center; border-top: 1px solid var(--border-color); pt: 20px; padding-top: 15px;">
+        <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Already have an account? 
+            <a href="{% url 'login' %}" style="color: var(--primary-color); text-decoration: none; font-weight: 700; margin-left: 5px;">
+                Log In →
+            </a>
+        </p>
     </div>
+    </form>
 </div>
 {% endblock %}
+
+{% comment %} 
+    NOTE: We are NOT defining 'block sidebar' here. 
+    By leaving it out, Django will automatically show the ads from base.html.
+{% endcomment %}

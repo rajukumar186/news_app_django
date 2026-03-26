@@ -15,6 +15,13 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.core.mail import send_mail
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.template.loader import render_to_string
+from django.contrib.sites.shortcuts import get_current_site
 
 def send_verification_invite(user):
     # Create the secure token
@@ -39,4 +46,29 @@ def send_verification_invite(user):
         [user.email],
         html_message=html_message,
         fail_silently=False,
+    )
+    
+def send_password_reset_email(request, user):
+    """
+    Separated logic to generate token and send the reset email.
+    """
+    subject = "Password Reset Requested"
+    context = {
+        "email": user.email,
+        "domain": get_current_site(request).domain,
+        "site_name": "The People's Era",
+        "uid": urlsafe_base64_encode(force_bytes(user.pk)),
+        "user": user,
+        "token": default_token_generator.make_token(user),
+        "protocol": "http", # Use 'https' in production
+    }
+    
+    email_body = render_to_string("registration/password_reset_email.txt", context)
+    
+    return send_mail(
+        subject, 
+        email_body, 
+        'admin@thepeoplesera.com', 
+        [user.email], 
+        fail_silently=False
     )
