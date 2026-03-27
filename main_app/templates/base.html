@@ -10,6 +10,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
+          .goog-te-banner-frame.skiptranslate, 
+          .goog-te-gadget-icon,
+          img.goog-te-gadget-icon {
+              display: none !important;
+          }
+          
+          /* Prevent Google from pushing the body down */
+          body {
+              top: 0 !important;
+          }
+          
+          /* Hide the "Original Text" popup that appears on hover */
+          .goog-text-highlight {
+              background-color: transparent !important;
+              box-shadow: none !important;
+          }
+          
+          #goog-gt-tt, .goog-te-balloon-frame {
+              display: none !important;
+          }
+      
+        
+    
         /* --- 1. VARIABLES & THEMES --- */
         :root {
             --primary-color: #c0392b; 
@@ -421,6 +444,7 @@
             new google.translate.TranslateElement({
                 pageLanguage: 'en',
                 includedLanguages: 'hi,en,bn,te,es,fr',
+            
                 autoDisplay: false
             }, 'google_translate_element');
         }

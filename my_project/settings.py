@@ -32,7 +32,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 # If they try to access a protected page without logging in, send them here:
 LOGIN_URL = 'login'
-site_url='home'
+site_url='localhost:8000'
 # Application definition
 
 # settings.py
@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    
     'main_app',
   
 ]
@@ -77,10 +78,18 @@ JAZZMIN_SETTINGS = {
     "site_logo": "images/logo.png", 
     "site_url": site_url,
     # Logo to display on the login screen
-    
+    "site_header": "The People's Era",
     # Square logo for the sidebar (when collapsed)
     "site_logo_classes": "img-circle",
-    
+    "welcome_sign": "Welcome to The People's Era",
+    "copyright": "The People's Era",
+    "custom_css": "css/admin_custom.css",
+    "use_google_fonts": True,
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "🚀 View Live Site", "url": "home", "new_window": True},
+        
+    ],
     
 }
 
