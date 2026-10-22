@@ -59,8 +59,8 @@ def password_reset_request(request):
         
         if user:
             # Call our new helper function
-            # send_password_reset_email(request, user)
-            pass
+            send_password_reset_email(request, user)
+            
         # We always redirect to 'done' for security (so users can't fish for emails)
         return redirect("password_reset_done")
         
@@ -417,7 +417,7 @@ def send_verification_invite(user):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     
     # The URL the user clicks in the email
-    link = f"https://thepeoplesera.com/set-password/{uid}/{token}/"
+    link = f"https://thepeoplesera.onrender.com/set-password/{uid}/{token}/"
     
     subject = "Verify your account - The Peoples Era"
     message = f"Welcome! Please click the link below to set your password and verify your email:\n\n{link}"
