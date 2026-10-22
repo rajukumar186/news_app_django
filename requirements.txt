@@ -9,6 +9,7 @@ certifi==2026.1.4
 charset-normalizer==3.4.4
 colorama==0.4.6
 Django==6.0.2
+django-anymail==15.2
 django-ipware==7.0.1
 django-jazzmin==3.0.4
 dnspython==2.8.0
