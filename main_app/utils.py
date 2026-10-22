@@ -60,7 +60,7 @@ def send_password_reset_email(request, user):
         "uid": urlsafe_base64_encode(force_bytes(user.pk)),
         "user": user,
         "token": default_token_generator.make_token(user),
-        "protocol": "http", # Use 'https' in production
+        "protocol": "https", # Use 'https' in production
     }
     
     email_body = render_to_string("registration/password_reset_email.txt", context)
