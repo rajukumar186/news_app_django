@@ -36,7 +36,7 @@ def send_verification_invite(user):
     context = {'link': link, 'user': user}
     
     # Render the HTML template
-    html_message = render_to_string('emails/verification_email.html', context)
+    html_message = render_to_string('verification_email.html', context)
     plain_message = strip_tags(html_message) 
     
     send_mail(
