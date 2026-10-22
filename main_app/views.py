@@ -409,26 +409,8 @@ def about(request):
      
     return render(request, 'about.html' )
 
-
-
-def send_verification_invite(user):
-    # Create the secure token
-    token = default_token_generator.make_token(user)
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    
-    # The URL the user clicks in the email
-    link = f"https://thepeoplesera.onrender.com/set-password/{uid}/{token}/"
-    
-    subject = "Verify your account - The Peoples Era"
-    message = f"Welcome! Please click the link below to set your password and verify your email:\n\n{link}"
-    
-    send_mail(
-        subject,
-        message,
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        fail_silently=False,
-    )
+ 
+ 
 def get_trending_news(request):
     # 1. Initialize GNews
     google_news = GNews(language='en', country='US', period='7d', max_results=10)

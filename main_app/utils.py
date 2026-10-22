@@ -30,7 +30,7 @@ def send_verification_invite(user):
     
     # The URL the user clicks in the email
     # Make sure 'set_password_confirm' matches the 'name' in your urls.py
-    link = f"https://thepeoplesera.com/set-password/{uid}/{token}/"
+    link = f"https://thepeoplesera.onrender.com/set-password/{uid}/{token}/"
     
     subject = "Verify your account - The Peoples Era"
     context = {'link': link, 'user': user}
