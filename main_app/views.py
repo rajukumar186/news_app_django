@@ -68,17 +68,7 @@ def password_reset_request(request):
 
 def password_reset_done(request):
     return render(request, 'registration/password_reset_done.html')
-# View 1: Request the reset
-# def password_reset_request(request):
-#     if request.method == "POST":
-#         email = request.POST.get('email')
-#         user = User.objects.filter(email=email).first()
-#         # if user:
-#         #     pass
-#             # send_password_reset_email(user)
-#         # Always show the 'done' message so hackers don't know if an email exists
-#         return render(request, 'registration/password_reset_done.html', {'email': email})
-#     return render(request, 'registration/password_reset.html')
+ 
 
 # View 2: The actual reset (Using your existing logic)
 def password_reset_confirm(request, uidb64, token):

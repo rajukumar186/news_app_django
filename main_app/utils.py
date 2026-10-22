@@ -8,14 +8,13 @@ Created on Wed Mar 25 18:20:59 2026
 # news_app/utils.py
 
 from django.utils.http import urlsafe_base64_encode
- 
+from django.core.mail import EmailMultiAlternatives
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from django.core.mail import send_mail
+from django.utils.html import strip_tags 
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
@@ -49,26 +48,40 @@ def send_verification_invite(user):
     )
     
 def send_password_reset_email(request, user):
-    """
-    Separated logic to generate token and send the reset email.
-    """
-    subject = "Password Reset Requested"
+    domain = request.get_host()
+    protocol = "https" if request.is_secure() else "http"
+
     context = {
         "email": user.email,
-        "domain": get_current_site(request).domain,
+        "domain": domain,
         "site_name": "The People's Era",
         "uid": urlsafe_base64_encode(force_bytes(user.pk)),
         "user": user,
         "token": default_token_generator.make_token(user),
-        "protocol": "https", # Use 'https' in production
+        "protocol": protocol,
     }
+
+    subject = "Password Reset Requested - The People's Era"
     
-    email_body = render_to_string("registration/password_reset_email.txt", context)
+    # Render both Plain Text and HTML templates
+    # text_content = render_to_string("registration/password_reset_email.txt", context)
+    html_content = render_to_string("registration/password_reset_email.html", context)
+    plain_message = strip_tags(html_content) 
     
-    return send_mail(
-        subject, 
-        email_body, 
-        'admin@thepeoplesera.com', 
-        [user.email], 
-        fail_silently=False
+    send_mail(
+        subject,
+        plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        html_message=html_content,
+        fail_silently=False,
     )
+    # Create multi-part email
+    # msg = EmailMultiAlternatives(
+    #     subject=subject,
+    #     body=text_content, # Plain text fallback
+    #     from_email=settings.DEFAULT_FROM_EMAIL,
+    #     to=[user.email]
+    # )
+    # msg.attach_alternative(html_content, "text/html") # HTML version
+    # msg.send(fail_silently=False)
