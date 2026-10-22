@@ -173,7 +173,11 @@ TIME_ZONE = 'Asia/Kolkata'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
-import os
+
+ 
+
+# This tells Django where to collect static files for production
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATIC_URL = "static/"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
