@@ -228,6 +228,7 @@
         </div>
     </div>
 
+    <!-- Promotion Requests Section -->
     <div class="card" style="padding: 20px; background: var(--card-bg); border-radius: 8px; box-shadow: 0 2px 10px var(--shadow);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <h3 style="margin: 0;">Promotion Requests</h3>
@@ -266,6 +267,57 @@
                     <tr>
                         <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
                             No promotion requests found in the system.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Employee Directory & ID Cards Section Styled Consistently -->
+    <div class="card" style="margin-top: 30px; padding: 20px; background: var(--card-bg); border-radius: 8px; box-shadow: 0 2px 10px var(--shadow);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">Employee Directory & ID Cards</h3>
+        </div>
+    
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Full Name</th>
+                        <th>Designation</th>
+                        <th>Email</th>
+                        <th style="text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr>
+                        <td data-label="Employee ID"><strong>{{ emp.employee_id }}</strong></td>
+                        <td data-label="Full Name">{{ emp.full_name }}</td>
+                        <td data-label="Designation">{{ emp.designation }}</td>
+                        <td data-label="Email" style="color: var(--text-muted);">{{ emp.email }}</td>
+                        <td data-label="Actions" style="text-align: center;">
+                            <a href="{% url 'view_id_card' emp.id %}" 
+                               target="_blank" 
+                               class="btn-action" 
+                               style="background: var(--primary-color); display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;" 
+                               title="View ID Card">
+                                <!-- SVG Eye Icon -->
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                View ID
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            No employees found in the database.
                         </td>
                     </tr>
                     {% endfor %}

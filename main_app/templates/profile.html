@@ -134,18 +134,7 @@
 {% block content %}
 <div class="profile-page-wrapper">
     
-    {% if user.is_authenticated and user.is_superuser %}
-    <section class="upload-card">
-        <h3 style="margin-bottom: 25px; font-weight: 800; color: var(--text-main);">
-            Post a New Clip
-        </h3>
-        <form method="POST" enctype="multipart/form-data" class="upload-form">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn-publish">Publish Clip</button>
-        </form>
-    </section>
-    {% endif %}
+   
     <aside class="profile-sidebar">
         <div class="profile-banner"></div>
 
@@ -177,11 +166,26 @@
                 </div>
             </div>
 
-            <a href="#" style="color: var(--primary-color); text-decoration: none; font-weight: 600; font-size: 0.9rem;">
-                Edit Profile Settings
+            <a href="/generate" style="color: var(--primary-color); text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                Generate ID card
             </a>
+             <a href="#" style="color: var(--primary-color); text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                 View ID card
+             </a>
         </div>
     </aside>
+     {% if user.is_authenticated and user.is_superuser %}
+     <section class="upload-card">
+         <h3 style="margin-bottom: 25px; font-weight: 800; color: var(--text-main);">
+             Post a New Clip
+         </h3>
+         <form method="POST" enctype="multipart/form-data" class="upload-form">
+             {% csrf_token %}
+             {{ form.as_p }}
+             <button type="submit" class="btn-publish">Publish Clip</button>
+         </form>
+     </section>
+     {% endif %}
 
 </div>
 {% endblock %}

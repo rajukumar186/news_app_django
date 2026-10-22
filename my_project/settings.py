@@ -32,7 +32,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 # If they try to access a protected page without logging in, send them here:
 LOGIN_URL = 'login'
-site_url='localhost:8000'
+site_url = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
 # Application definition
 
 # settings.py

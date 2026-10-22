@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate Press ID Card - The People's Era{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        padding: 20px 0;
+    }
+
+    .custom-form-box {
+        width: 100%;
+        max-width: 550px;
+        background: var(--card-bg);
+        color: var(--text-main);
+        padding: 35px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px var(--shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .custom-form-box h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: var(--text-main);
+        font-weight: 800;
+        font-size: 1.4rem;
+        border-bottom: 2px solid var(--primary-color);
+        padding-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-main);
+        font-size: 0.9rem;
+    }
+
+    /* Style Django form inputs and selects to match site theme */
+    .form-group input[type="text"],
+    .form-group input[type="email"],
+    .form-group input[type="password"],
+    .form-group input[type="file"],
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-color);
+        color: var(--text-main);
+        box-sizing: border-box;
+        font-size: 0.95rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
+    }
+
+    /* File input alignment */
+    .form-group input[type="file"] {
+        padding: 8px;
+        cursor: pointer;
+    }
+
+    .btn-submit {
+        width: 100%;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn-submit:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    /* Django error lists styling */
+    .errorlist {
+        color: #e74c3c;
+        list-style: none;
+        padding: 0;
+        font-size: 0.85rem;
+        margin-top: 6px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-card-wrapper">
+    <div class="custom-form-box">
+        <h2>Generate Press ID Card</h2>
+        
+        <!-- enctype is required for handling photo/file uploads -->
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div class="form-group">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+            
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-id-card"></i> Create ID Card
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

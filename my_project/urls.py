@@ -59,7 +59,9 @@ urlpatterns = [
          name='password_reset_confirm'),
     
     
-    
+    path('generate/', views.create_id_card, name='create_id_card'),
+    path('card/<uuid:card_id>/', views.view_id_card, name='view_id_card'),
+    path('verify/<uuid:card_id>/', views.verify_id_card, name='verify_id_card'),
     
     
     # path('forgot-password/', views.password_reset_request, name='password_reset_new'),

@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}NSE Market Dashboard - The People's Era{% endblock %}
+
+{% block extra_css %}
+<style>
+   /* --- GLOBAL RESET & FIXES --- */
+:root {
+    --primary-color: #3498db;
+    --card-bg: #ffffff;
+    --border-color: #e0e0e0;
+    --text-main: #333333;
+    --text-muted: #777777;
+    --shadow: rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box; /* Crucial: ensures padding doesn't add to width */
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Prevents the ticker from creating horizontal scrollbars */
+    width: 100%;
+}
+
+/* --- STOCK TICKER (CAROUSEL) --- */
+.stock-ticker-bar {
+     background: var(--card-bg);
+    color: var(--text-muted); 
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 12px 0;
+    border-bottom: 3px solid var(--primary-color);
+    
+    /* WIDTH FIX: Full bleed without breaking the layout */
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -40vw;
+    margin-right: -50vw;
+}
+
+
+
+.ticker-item1 {
+    display: flex;
+    align-items: center;
+    padding: 0 35px;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.ticker-move1 {
+    display: flex;
+    animation: stockScroll 35s linear infinite;
+    width: max-content; /* Ensures content doesn't shrink */
+}
+.price-up { color: #4caf50; }
+.price-down { color: #ff5252; }
+
+@keyframes stockScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* --- DASHBOARD GRID --- */
+.stock-grid {
+    display: grid;
+    /* WIDTH FIX: Uses min() to prevent overflow on tiny screens */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 20px;
+    margin: 25px 0 30px 0;
+    width: 100%;
+    max-width: 1400px; /* Prevents cards from looking stretched on ultra-wide screens */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.stock-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--shadow);
+    transition: transform 0.2s ease-in-out;
+}
+
+.stock-card:hover { 
+    transform: translateY(-5px); 
+}
+
+.stock-name { 
+    font-size: 0.8rem; 
+    color: var(--text-muted); 
+    text-transform: uppercase; 
+    font-weight: 600; 
+    letter-spacing: 0.5px;
+}
+
+.stock-price { 
+    font-size: 1.6rem; 
+    font-weight: 800; 
+    color: var(--text-main); 
+    margin: 8px 0; 
+}
+
+/* --- CHART AREA --- */
+.chart-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 15px var(--shadow);
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* --- RESPONSIVE BREAKPOINTS --- */
+
+@media (max-width: 1024px) {
+    .stock-grid {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 0 15px;
+    }
+    .ticker-item1 { padding: 0 20px; }
+}
+
+@media (max-width: 768px) {
+    .stock-grid {
+        grid-template-columns: 1fr; /* Stack vertically for better readability */
+    }
+    
+    .stock-ticker-bar {
+        padding: 10px 0;
+    }
+    
+    .stock-price { font-size: 1.4rem; }
+    
+    .chart-box { padding: 15px; }
+}
+
+@media (max-width: 480px) {
+    .ticker-item1 { font-size: 0.8rem; padding: 0 15px; }
+    .stock-card { padding: 15px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stock-ticker-bar">
+    <div class="ticker-move1">
+        {% for item in ticker_data %}
+            <div class="ticker-item1">
+                {{ item.name }} 
+                <span class="{% if item.change > 0 %}price-up{% else %}price-down{% endif %}">
+                    ₹{{ item.price }} ({% if item.change > 0 %}+{% endif %}{{ item.change }}%)
+                </span>
+            </div>
+        {% endfor %}
+      
+    </div>
+</div>
+
+<h2 style="margin-bottom: 20px; font-weight: 800;">NSE Market Overview</h2>
+
+<div class="stock-grid">
+    <div class="stock-card">
+        <div class="stock-name">Nifty 50</div>
+        <div class="stock-price">22,713.10</div>
+        <div class="price-up" style="font-weight: 700;">▲ 0.15%</div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-name">Bank Nifty</div>
+        <div class="stock-price">48,250.30</div>
+        <div class="price-up" style="font-weight: 700;">▲ 0.32%</div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-name">Market VIX</div>
+        <div class="stock-price">12.45</div>
+        <div class="price-down" style="font-weight: 700;">▼ 2.10%</div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-name">Top Gainer (Reliance)</div>
+        <div class="stock-price">2,985.40</div>
+        <div class="price-up" style="font-weight: 700;">▲ 1.25%</div>
+    </div>
+</div>
+
+<div class="chart-box">
+    <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--text-main);">Intraday Performance (Nifty 50)</h3>
+    <canvas id="marketCanvas" height="120"></canvas>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('marketCanvas').getContext('2d');
+        
+        // Dynamic Chart Color based on Dark Mode
+        const isDark = document.body.classList.contains('dark-mode');
+        const gridColor = isDark ? '#333' : '#eee';
+        const textColor = isDark ? '#a0aec0' : '#5a6c7d';
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['9:15', '10:30', '11:45', '13:00', '14:15', '15:30'],
+                datasets: [{
+                    label: 'Index Value',
+                    data: [22400, 22350, 22580, 22620, 22750, 22713],
+                    borderColor: '#c0392b', // Uses your primary color
+                    backgroundColor: 'rgba(192, 57, 43, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { 
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    },
+                    x: { 
+                        grid: { display: false },
+                        ticks: { color: textColor }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}  

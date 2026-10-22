@@ -1,0 +1,441 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Press ID Card - {{ id_card.full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        /* CR80 Portrait Dimensions */
+        --card-width: 54mm;
+        --card-height: 85.6mm;
+    }
+
+    .id-card-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0;
+    }
+
+    .preview-container {
+        display: flex;
+        gap: 25px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    /* CR80 Portrait Card Wrapper */
+    .id-card {
+        width: var(--card-width);
+        height: var(--card-height);
+        min-width: var(--card-width);
+        max-width: var(--card-width);
+        min-height: var(--card-height);
+        max-height: var(--card-height);
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #dcdde1;
+        text-align: left;
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* --- FRONT SIDE (Portrait CR80) --- */
+    .id-card-front .card-header {
+        background: var(--primary-color);
+        color: #ffffff;
+        padding: 6px 4px;
+        text-align: center;
+        height: 11mm;
+        box-sizing: border-box;
+    }
+
+    .card-header h3 {
+        margin: 0;
+        font-size: 8pt;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        color: #ffffff !important;
+    }
+
+    .card-header span {
+        font-size: 5.5pt;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        opacity: 0.9;
+    }
+
+    .photo-container {
+        width: 20mm;
+        height: 23mm;
+        margin: 4mm auto 2mm auto;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 2px solid var(--primary-color);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        background: #f0f2f5;
+        flex-shrink: 0;
+    }
+
+    .photo-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .card-body-front {
+        text-align: center;
+        padding: 0 6px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .card-body-front h2 {
+        margin: 0 0 1px 0;
+        font-size: 8.5pt;
+        color: #2f3542;
+        font-weight: 700;
+        line-height: 1.1;
+        white-space: nowrap;
+    }
+
+    .designation-badge {
+        display: inline-block;
+        background: #f1f2f6;
+        color: var(--primary-color);
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 6pt;
+        font-weight: 700;
+        margin-bottom: 3mm;
+        text-transform: uppercase;
+    }
+
+    .details-grid {
+        text-align: left;
+        background: #f8f9fa;
+        padding: 4px 6px;
+        border-radius: 4px;
+        font-size: 5.8pt;
+        color: #57606f;
+        border-left: 2px solid var(--primary-color);
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .details-grid p {
+        margin: 2px 0;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .details-grid strong {
+        color: #2f3542;
+    }
+
+
+    /* --- BACK SIDE (Portrait CR80) --- */
+    .id-card-back {
+        background: #ffffff;
+    }
+
+    .card-back-header {
+        background: #1e272e;
+        color: #ffffff;
+        text-align: center;
+        padding: 6px;
+        font-size: 7pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        height: 10mm;
+        box-sizing: border-box;
+    }
+
+    .card-body-back {
+        padding: 4mm 6mm;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        font-size: 5.5pt;
+        color: #57606f;
+    }
+
+    .office-address h4, .terms-section h4 {
+        margin: 0 0 1px 0;
+        color: #2f3542;
+        font-size: 6pt;
+        text-transform: uppercase;
+        border-bottom: 1px solid #dfe4ea;
+        padding-bottom: 1px;
+    }
+
+    .office-address p, .terms-section ul {
+        margin: 1px 0 3px 0;
+        line-height: 1.2;
+    }
+
+    .terms-section ul {
+        padding-left: 8px;
+        margin-top: 1px;
+    }
+
+    .terms-section li {
+        margin-bottom: 1px;
+    }
+
+    .validity-row {
+        display: flex;
+        justify-content: space-between;
+        background: #f8f9fa;
+        padding: 3px 5px;
+        border-radius: 4px;
+        font-size: 5.8pt;
+        font-weight: 600;
+        color: #2f3542;
+        border: 1px solid #dfe4ea;
+    }
+
+    .qr-signature-area {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 2px;
+    }
+
+    .qr-box {
+        width: 12mm;
+        height: 12mm;
+        background: #fff;
+        padding: 1px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+
+    .qr-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .signature-box {
+        text-align: center;
+    }
+
+    .signature-line {
+        width: 18mm;
+        border-bottom: 1px solid #747d8c;
+        margin-bottom: 2px;
+    }
+    .signature-img-container {
+        width: 18mm;
+        height: 8mm;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        margin-bottom: 1px;
+    }
+
+    .signature-img-container img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+
+    .signature-box span {
+        font-size: 5pt;
+        color: #747d8c;
+        font-weight: 600;
+    }
+
+    /* --- COMMON FOOTER --- */
+    .card-footer {
+        background: #1e272e;
+        color: #ffffff;
+        text-align: center;
+        padding: 4px;
+        font-size: 5.5pt;
+        letter-spacing: 0.3px;
+        flex-shrink: 0;
+        height: 7mm;
+        box-sizing: border-box;
+    }
+
+    .card-footer a {
+        color: #ff4757;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    /* Print Optimization */
+    @media print {
+        @page {
+            size: 54mm 85.6mm;
+            margin: 0;
+        }
+
+        header, footer, aside, .no-print, nav, .sidebar {
+            display: none !important;
+        }
+        
+        body {
+            background: #ffffff !important;
+            color: #000000 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .id-card-wrapper {
+            padding: 0 !important;
+            margin: 0 !important;
+            display: block !important;
+        }
+
+        .preview-container {
+            display: flex !important;
+            flex-direction: row !important;
+            gap: 10mm !important;
+            justify-content: center !important;
+            align-items: center !important;
+            page-break-after: always;
+        }
+
+        .id-card {
+            width: 54mm !important;
+            height: 85.6mm !important;
+            min-width: 54mm !important;
+            max-width: 54mm !important;
+            min-height: 85.6mm !important;
+            max-height: 85.6mm !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        .id-card-front .card-header {
+            background: var(--primary-color) !important;
+            -webkit-print-color-adjust: exact !important;
+        }
+
+        .card-back-header, .card-footer {
+            background: #1e272e !important;
+            -webkit-print-color-adjust: exact !important;
+        }
+
+        .details-grid, .validity-row {
+            background: #f8f9fa !important;
+            -webkit-print-color-adjust: exact !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="id-card-wrapper">
+
+    <div class="preview-container">
+
+        <!-- ================= FRONT SIDE (Portrait) ================= -->
+        <div class="id-card id-card-front">
+            <div class="card-header">
+                <h3>The People's Era</h3>
+                <span>Official Press Media</span>
+            </div>
+
+            <div class="photo-container">
+                <img src="{{ id_card.photo.url }}" alt="Employee Photo">
+            </div>
+
+            <div class="card-body-front">
+                <h2>{{ id_card.full_name }}</h2>
+                <div class="designation-badge">{{ id_card.designation }}</div>
+
+                <div class="details-grid">
+                    <p><span>ID:</span> <strong>{{ id_card.employee_id }}</strong></p>
+                    <p><span>Gender:</span> <strong>{{ id_card.gender }}</strong></p>
+                    <p><span>Blood:</span> <strong style="color: var(--primary-color);">{{ id_card.blood_group }}</strong></p>
+                    <p><span>Email:</span> <strong style="word-break: break-all;">{{ id_card.email }}</strong></p>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                Authorized Press &bull; <a href="https://www.thepeoplesera.com" target="_blank">www.thepeoplesera.com</a>
+            </div>
+        </div>
+
+
+        <!-- ================= BACK SIDE (Portrait) ================= -->
+        <div class="id-card id-card-back">
+            <div class="card-back-header">
+                Identity Verification
+            </div>
+
+            <div class="card-body-back">
+                <!-- Office Address -->
+                <div class="office-address">
+                    <h4>Head Office Address</h4>
+                    <p>The People's Era Media House, Sector 62, Noida, UP - 201301</p>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <div class="terms-section">
+                    <h4>Terms & Conditions</h4>
+                    <ul>
+                        <li>Non-transferable property of media house.</li>
+                        <li>If found, please return to head office.</li>
+                        <li>Misuse of this press card will lead to legal action.</li>
+                    </ul>
+                </div>
+
+                <!-- Join & Expiry Dates -->
+                <div class="validity-row">
+                    <div>Join: <strong>{{ id_card.created_at|date:"d/m/Y" }}</strong></div>
+                    <div>Exp: <strong>{{ id_card.created_at|date:"d/m" }}/2029</strong></div>
+                </div>
+
+                <!-- QR Code & Signature -->
+                <div class="qr-signature-area">
+                    <div class="qr-box">
+                        <img src="{{ id_card.qr_code.url }}" alt="QR Code">
+                    </div>
+                    <div class="signature-box">
+                        <div class="signature-img-container"><img src={% static 'images/md_signature.png' %} alt="MD Signature"></div>
+                        
+                        <span>Issuing Authority</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                Website: <a href="https://www.thepeoplesera.com" target="_blank">www.thepeoplesera.com</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Print Button Area -->
+    <div style="margin-top: 25px;" class="no-print">
+        <button onclick="window.print()" style="border: none; cursor: pointer; padding: 12px 30px; font-size: 1rem; border-radius: 8px; font-weight: 600; background-color: var(--primary-color); color: white;">
+            <i class="fas fa-print"></i> Print ID Card
+        </button>
+    </div>
+
+</div>
+{% endblock %}

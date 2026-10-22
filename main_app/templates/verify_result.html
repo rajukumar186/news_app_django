@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ID Verification</title>
+</head>
+<body style="text-align: center; font-family: Arial, sans-serif; margin-top: 50px;">
+    <h2 style="color: green;">✓ Valid ID Card</h2>
+    <p>This ID card is officially registered in our system.</p>
+    
+    <div style="margin-top: 20px;">
+        <img src="{{ id_card.photo.url }}" width="120" style="border-radius: 50%;" alt="Photo">
+        <h3>{{ id_card.full_name }}</h3>
+        <p>Designation: {{ id_card.designation }}</p>
+        <p>Employee ID: {{ id_card.employee_id }}</p>
+        <p>Email: {{ id_card.email }}</p>
+    </div>
+</body>
+</html>

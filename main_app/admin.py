@@ -6,7 +6,7 @@ admin.site.index_title = "Welcome to the Super Admin Dashboard"
 from .models import Promotion
 
 from django.utils.html import format_html
-from .models import NewsPost,ContactMessage
+from .models import NewsPost,ContactMessage,IDCard
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
@@ -95,3 +95,10 @@ class VideoPostAdmin(admin.ModelAdmin):
     list_filter = ('uploader_location', 'uploaded_at')
     search_fields = ('title', 'uploader_ip')
     ordering = ('-uploaded_at',)
+    
+@admin.register(IDCard)
+class IDCardAdmin(admin.ModelAdmin):
+    list_display = ('employee_id', 'full_name', 'designation', 'email', 'created_at')
+    search_fields = ('full_name', 'employee_id', 'email', 'designation')
+    list_filter = ('designation', 'created_at')
+    readonly_fields = ('id', 'qr_code', 'created_at')

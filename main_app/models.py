@@ -2,6 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify 
 import uuid
+import qrcode
+from io import BytesIO
+from django.core.files import File
+from datetime import datetime
 class VisitorLog(models.Model):
     ip_address = models.GenericIPAddressField()
     page_visited = models.CharField(max_length=255)
@@ -80,8 +84,82 @@ class NewsPost(models.Model):
         else:
             self.slug = base_slug
         super().save(*args, **kwargs)
-        
-
-
+    
     def __str__(self):
         return self.title
+        
+# FOR ID CARD GENERATION AND VALIDATION LOGIC
+class IDCard(models.Model):
+  # Unique UUID primary key
+  id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+  # Auto-generated serial employee ID (e.g., TPE-2026-000)
+  employee_id = models.CharField(max_length=50, unique=True, blank=True)
+
+  full_name = models.CharField(max_length=100)
+  designation = models.CharField(max_length=100)
+  gender = models.CharField(max_length=20,default='Other', blank=True)
+  blood_group = models.CharField(max_length=10, default='NA', blank=True)
+  email = models.EmailField()
+
+  photo = models.ImageField(upload_to='id_photos/')
+  qr_code = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  def save(self, *args, **kwargs):
+    # 1. Generate sequential employee_id if it doesn't exist yet
+    if not self.employee_id:
+      current_year = datetime.now().year
+      prefix = f'TPE-{current_year}-'
+
+      last_card = (
+          IDCard.objects.filter(employee_id__startswith=prefix)
+          .order_by('-employee_id')
+          .first()
+      )
+
+      if last_card:
+        last_sequence_str = last_card.employee_id.split('-')[-1]
+        next_sequence = int(last_sequence_str) + 1
+      else:
+        next_sequence = 0  # Starts at 000
+
+      self.employee_id = f'{prefix}{next_sequence:03d}'
+
+    # 2. Save temporarily first so a UUID is assigned if it's a new instance
+    # (Required before generating the QR code URL referencing self.id)
+    is_new = self._state.adding
+    if is_new:
+      super().save(*args, **kwargs)
+
+    # 3. Generate QR code pointing to the verification URL with this card's UUID
+    # Replace '127.0.0.1:8000' with your live domain in production
+    verification_url = f'http://127.0.0.1:8000/verify/{self.id}/'
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(verification_url)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color='black', back_color='white')
+
+    buffer = BytesIO()
+    img.save(buffer, format='PNG')
+    file_name = f'qr_{self.employee_id}.png'
+
+    # Save the generated QR code image file
+    self.qr_code.save(file_name, File(buffer), save=False)
+
+    # Final save to persist the QR code image path
+    super().save(*args, **kwargs)
+
+  def __str__(self):
+    return f'{self.full_name} ({self.employee_id})'
+
+
+        
+

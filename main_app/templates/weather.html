@@ -1,135 +1,224 @@
 {% extends 'base.html' %}
 
-{% block content %}
+{% block extra_css %}
 <style>
-    /* Use variables for dynamic themes */
-    .weather-grid {
-        display: grid;
-        grid-template-columns: 1fr; 
-        gap: 24px;
-        padding: 20px;
-        max-width: 1400px;
+    :root {
+        --weather-glass: rgba(255, 255, 255, 0.1);
+        --weather-border: rgba(255, 255, 255, 0.2);
+        --weather-accent: #00d2ff;
+        --weather-gradient: linear-gradient(to right, #00d2ff, #3a7bd5);
+    }
+
+    body.dark-mode .weather-dashboard {
+        --weather-glass: rgba(255, 255, 255, 0.05);
+        --text-main: #ffffff;
+    }
+
+    .weather-dashboard {
+        padding: 15px; /* Reduced padding for mobile */
+        color: var(--text-main);
+        max-width: 1200px;
         margin: 0 auto;
     }
 
-    @media (min-width: 768px) {
-        .weather-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    @media (min-width: 1024px) {
-        .weather-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-
-    .weather-card {
-        /* CHANGED: Uses variables from your base.html */
-        background: var(--card-bg, #ffffff); 
-        color: var(--text-main, #1a202c);
-        border: 1px solid var(--border-color, #edf2f7);
-        
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: 0 10px 25px var(--shadow, rgba(0,0,0,0.05));
-        transition: all 0.3s ease;
+    /* --- Search Section --- */
+    .search-row {
+        margin-bottom: 25px;
         display: flex;
-        flex-direction: column;
+        justify-content: center;
     }
 
-    .weather-card:hover {
-        transform: translateY(-8px);
-        border-color: var(--primary-color, #3b82f6);
+    .weather-search-bar {
+        display: flex;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 5px;
+        width: 100%;
+        max-width: auto;
+        box-shadow: 0 4px 15px var(--shadow);
     }
 
-    .state-name {
-        font-size: 1.5rem;
-        font-weight: 800;
-        /* CHANGED: Dynamic text color */
-        color: var(--text-main, #1a202c); 
+    .weather-search-bar input {
+        background: transparent;
+        border: none;
+        color: inherit;
+        padding: 10px 15px;
+        flex: 1; /* Ensures input takes available space */
+        min-width: 0; /* Prevents overflow in flexbox */
+        outline: none;
     }
 
-    .metric-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-    }
-
-    .metric-box {
-        /* CHANGED: Secondary background for dark mode visibility */
-        background: var(--bg-secondary, #f8fafc); 
-        padding: 12px;
+    .weather-search-bar button {
+        background: var(--primary-color);
+        border: none;
+        color: white;
+        padding: 10px 20px;
         border-radius: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* --- Main Dashboard Grid --- */
+    .main-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .glass-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 30px;
+        text-align: center; /* Better look on mobile */
+        box-shadow: 0 4px 15px var(--shadow);
+    }
+
+    .current-temp-big {
+        font-size: clamp(3.5rem, 10vw, 5rem); /* Responsive font size */
+        font-weight: 800;
+        margin: 10px 0;
+        color: var(--primary-color);
+    }
+
+    .stats-sidebar {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .stat-item {
+        background: var(--card-bg);
+        padding: 15px;
+        border-radius: 16px;
         text-align: center;
+        border: 1px solid var(--border-color);
     }
 
-    .m-label {
-        display: block;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        /* CHANGED: Muted text variable */
-        color: var(--text-muted, #718096); 
-        letter-spacing: 1px;
+    /* --- Forecast Slider --- */
+    .forecast-section {
+        margin-top: 20px;
     }
 
-    /* Keep metric colors bright for both modes */
-    .temp { color: #ff4757; }
-    .rain { color: #2e86de; }
-    .wind { color: #2ed573; }
-    .humid { color: #a55eea; }
+    .forecast-slider {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 10px 5px 20px 5px;
+        scrollbar-width: thin; /* Firefox */
+        -webkit-overflow-scrolling: touch; /* Smooth scroll for iOS */
+    }
 
-    /* Helper for the description text */
-    .theme-muted-text {
-        color: var(--text-muted, #666);
+    /* Custom Scrollbar for Chrome/Safari */
+    .forecast-slider::-webkit-scrollbar {
+        height: 6px;
+    }
+    .forecast-slider::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 10px;
+    }
+
+    .day-card {
+        min-width: 110px; /* Slimmer cards to see more at once */
+        flex: 0 0 auto;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 15px;
+        text-align: center;
+        transition: transform 0.2s;
+    }
+
+    /* --- Responsive Breakpoints --- */
+    @media (max-width: 992px) {
+        .main-grid { 
+            grid-template-columns: 1fr; 
+        }
+    }
+
+    @media (max-width: 480px) {
+        .stats-sidebar {
+            grid-template-columns: repeat(2, 1fr); /* Keep 2x2 for small phones */
+        }
+        
+        .glass-card {
+            padding: 20px;
+        }
+
+        .weather-search-bar button {
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
     }
 </style>
+{% endblock %}
 
-<div class="container-fluid py-5">
-    <div class="text-center mb-5">
-        <h1 class="display-5 fw-bold">Weather Analytics</h1>
-        <p class="theme-muted-text">Regional climate overview for the current cycle</p>
-    </div>
-    
-    <div id="weather-wrapper" class="weather-grid">
+{% block content %}
+<div class="weather-dashboard">
+    <div class="search-row">
+        <div class="weather-search-bar">
+            <input type="text" placeholder="Search city..." id="city-input">
+            <button onclick="getWeather()">Search</button>
         </div>
-</div>
+    </div>
 
-<script>
-    const statesData = [
-        { name: "Maharashtra", temp: "32°C", rain: "12mm", humid: "65%", wind: "14km/h", icon: "☀️" },
-        { name: "Kerala", temp: "28°C", rain: "45mm", humid: "88%", wind: "10km/h", icon: "🌧️" },
-        { name: "Rajasthan", temp: "40°C", rain: "0mm", humid: "15%", wind: "22km/h", icon: "🏜️" },
-        { name: "Himachal", temp: "18°C", rain: "5mm", humid: "40%", wind: "8km/h", icon: "🏔️" },
-        { name: "West Bengal", temp: "30°C", rain: "20mm", humid: "75%", wind: "12km/h", icon: "⛅" },
-        { name: "Tamil Nadu", temp: "34°C", rain: "2mm", humid: "60%", wind: "18km/h", icon: "🌤️" }
-    ];
+    <div class="main-grid">
+        <div class="glass-card">
+            <h2 id="city-name">New Delhi</h2>
+            <p id="date-today">Wednesday, 15 April</p>
+            <div class="current-temp-big">28°C</div>
+            <p>Sunny Skies</p>
+        </div>
 
-    const wrapper = document.getElementById('weather-wrapper');
-    
-    statesData.forEach(item => {
-        wrapper.innerHTML += `
-            <div class="weather-card">
-                <div class="state-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <span class="state-name">${item.name}</span>
-                    <span style="font-size: 2rem;">${item.icon}</span>
-                </div>
-                <div class="metric-container">
-                    <div class="metric-box">
-                        <span class="m-label">Temperature</span>
-                        <span class="m-value temp" style="font-weight:700;">${item.temp}</span>
-                    </div>
-                    <div class="metric-box">
-                        <span class="m-label">Rainfall</span>
-                        <span class="m-value rain" style="font-weight:700;">${item.rain}</span>
-                    </div>
-                    <div class="metric-box">
-                        <span class="m-label">Humidity</span>
-                        <span class="m-value humid" style="font-weight:700;">${item.humid}</span>
-                    </div>
-                    <div class="metric-box">
-                        <span class="m-label">Wind</span>
-                        <span class="m-value wind" style="font-weight:700;">${item.wind}</span>
-                    </div>
-                </div>
+        <div class="stats-sidebar">
+            <div class="stat-item">
+                <small>HUMIDITY</small>
+                <div>45%</div>
             </div>
-        `;
-    });
+            <div class="stat-item">
+                <small>WIND</small>
+                <div>12 km/h</div>
+            </div>
+            <div class="stat-item">
+                <small>UV INDEX</small>
+                <div>High</div>
+            </div>
+            <div class="stat-item">
+                <small>PRESSURE</small>
+                <div>1012 hPa</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="forecast-section">
+        <h3 class="sidebar-title">7-Day Forecast</h3>
+        <div class="forecast-slider">
+            <div class="day-card">
+                <h4>Thu</h4>
+                <div style="font-size: 1.5rem;">☀️</div>
+                <strong>30°C</strong>
+            </div>
+            <div class="day-card">
+                <h4>Fri</h4>
+                <div style="font-size: 1.5rem;">⛅</div>
+                <strong>29°C</strong>
+            </div>
+           
+              
+            </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function getWeather() {
+        const city = document.getElementById('city-input').value;
+        console.log("Searching for weather in: " + city);
+        // Add your Weather API logic here
+    }
 </script>
 {% endblock %}

@@ -24,7 +24,9 @@ from .models import Promotion, NewsPost, VisitorLog,VideoPost,ContactMessage # I
 from django.contrib.auth.models import User
 
 # from .forms import EmailSignUpForm
-
+from django.shortcuts import get_object_or_404, redirect, render
+from .forms import IDCardForm
+from .models import IDCard
 
 #updated code based on validation
 
@@ -113,7 +115,7 @@ def signup_view(request):
             )
             
             if created or not user.is_active:
-                # send_verification_invite(user)
+                send_verification_invite(user)
                 #comment only testing purpose
                 return render(request, 'registration/signup_done.html', {'email': email})
             else:
@@ -246,6 +248,7 @@ def superadmin_dashboard(request):
         'active_promos': Promotion.objects.filter(is_active=True).count(),
         'recent_posts': NewsPost.objects.order_by('-created_at')[:5],
         'all_promotions': Promotion.objects.all().order_by('-created_at'),
+        'employees' : IDCard.objects.all().order_by("-created_at")
     }
     return render(request, 'superadmin.html', context)
 
@@ -277,8 +280,53 @@ def profile_view(request):
     else:
         form = VideoUploadForm()
         return render(request, 'profile.html', {'form': form})
-
 def weather_view(request):
+  import pandas as pd
+  # Open-Meteo historical weather API for Delhi coordinates (Lat: 28.6139, Lon: 77.2090)
+  url = (
+      "https://archive-api.open-meteo.com/v1/archive?latitude=28.6139&longitude=77.2090&start_date=2026-09-28&end_date=2026-10-07&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,relative_humidity_2m_mean"
+  )
+
+  try:
+    response = requests.get(url)
+    data = response.json()
+
+    # Convert to Pandas DataFrame
+    df = pd.DataFrame({
+        "date": data["daily"]["time"],
+        "max_temp": data["daily"]["temperature_2m_max"],
+        "min_temp": data["daily"]["temperature_2m_min"],
+        "precipitation": data["daily"]["precipitation_sum"],
+        "humidity": data["daily"]["relative_humidity_2m_mean"],
+    })
+
+    # Extract lists for chart visualization in your template
+    dates = df["date"].tolist()
+    max_temps = df["max_temp"].tolist()
+    min_temps = df["min_temp"].tolist()
+
+    # Get the latest day's metrics for quick stats display
+    latest = df.iloc[-1]
+
+    context = {
+        "city": "Delhi",
+        "date": latest["date"],
+        "temp": latest["max_temp"],
+        "humidity": latest["humidity"],
+        "precipitation": latest["precipitation"],
+        "chart_labels": dates,
+        "chart_max_temps": max_temps,
+        "chart_min_temps": min_temps,
+        "weather_table": df.to_dict(orient="records"),  # Optional: for table display
+    }
+  except Exception as e:
+    context = {
+        "error": "Could not fetch weather data. Please check your network or API URL."
+    }
+
+  return render(request, "weather.html", context)
+
+def weather_vi(request):
     # 1. Get Client IP
     # client_ip, is_routable = get_client_ip(request)
     
@@ -412,7 +460,35 @@ def get_stock_data(request):
     return JsonResponse({'stocks': data})
 
 def stocks(request):
+    ticker_data = [
+        {'name': 'RELIANCE', 'price': '2,985.40', 'change': 1.25},
+        {'name': 'HDFC BANK', 'price': '1,442.15', 'change': -0.40},
+        {'name': 'TCS', 'price': '4,120.00', 'change': 0.82},
+        {'name': 'INFY', 'price': '1,490.10', 'change': -1.10},
+        {'name': 'ICICI BANK', 'price': '1,085.00', 'change': 0.55},
+    ]
     
-    return render(request, 'stocks.html')
+    context = {
+        'ticker_data': ticker_data,
+    }
+    return render(request, 'stocks.html',context)
+@login_required
+def create_id_card(request):
+    if request.method == 'POST':
+        form = IDCardForm(request.POST, request.FILES)
+        if form.is_valid():
+            id_card = form.save()
+            return redirect('view_id_card', card_id=id_card.id)
+    else:
+        form = IDCardForm()
+    return render(request, 'create_form.html', {'form': form})
+@login_required
+def view_id_card(request, card_id):
+    id_card = get_object_or_404(IDCard, id=card_id)
+    return render(request, 'id_card_template.html', {'id_card': id_card})
+
+def verify_id_card(request, card_id):
+    id_card = get_object_or_404(IDCard, id=card_id)
+    return render(request, 'verify_result.html', {'id_card': id_card})
 
 
