@@ -42,7 +42,7 @@ urlpatterns = [
         views.set_password_confirm, 
         name='set_password_confirm'
     ),
-    path('get_news/', views.get_trending_news, name='news'),
+    path('get_news/', views.get_trending_news, name='get_news'),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('signup/', views.signup_view, name='signup'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),

@@ -1,0 +1,52 @@
+ 
+
+/* --- Admin Global Styling --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Make the Sidebar look like a Terminal */
+.main-sidebar {
+    background-color: #0f172a !important; /* Deep Navy */
+}
+
+.nav-sidebar .nav-link.active {
+    background-color: #2563eb !important; /* Blue Accent */
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
+/* Style the top Navbar */
+.main-header {
+    border-bottom: 1px solid #e2e8f0 !important;
+    backdrop-filter: blur(10px);
+}
+
+/* Customizing the "Save" buttons to look modern */
+.btn-high-emphasis, .btn-primary {
+    background: #2563eb !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-weight: bold !important;
+    padding: 8px 20px !important;
+}
+
+/* Style the Footer */
+.app-footer {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+}
+.app-footer .float-end.d-none.d-sm-inline {
+    display: none !important;
+}
+
+/* Optional: Center your copyright or style it better */
+.app-footer {
+    display: flex;
+    justify-content: center; /* This centers your custom copyright */
+    font-size: 12px;
+    color: #94a3b8;
+}

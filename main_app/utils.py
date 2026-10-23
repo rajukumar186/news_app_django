@@ -30,7 +30,7 @@ def send_verification_invite(request,user):
     protocol = 'https' if request.is_secure() else 'http'
     
     link = f"{protocol}://{domain}/set-password/{uid}/{token}/"
-    print(link)
+    # print(link)
     subject = "Verify your account - The Peoples Era"
     context = {'link': link, 'user': user}
     
@@ -38,18 +38,19 @@ def send_verification_invite(request,user):
     html_message = render_to_string('varification_email.html', context)
     plain_message = strip_tags(html_message) 
     
-    # send_mail(
-    #     subject,
-    #     plain_message,
-    #     settings.DEFAULT_FROM_EMAIL,
-    #     [user.email],
-    #     html_message=html_message,
-    #     fail_silently=False,
-    # )
+    send_mail(
+        subject,
+        plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        html_message=html_message,
+        fail_silently=False,
+    )
 def send_password_reset_email(request, user):
+    if not user or not getattr(user, 'email', None):
+        return False
+
     domain = request.get_host()
-    
-    # Ensures 'https' is selected when deployed on Render
     protocol = "https" if request.is_secure() else "http"
 
     context = {
@@ -66,22 +67,16 @@ def send_password_reset_email(request, user):
     
     # Render the HTML template
     html_content = render_to_string("registration/password_reset_email.html", context)
-    
-    # Create the plain-text alternative automatically
-    text_content = strip_tags(html_content) 
+    text_content = strip_tags(html_content)
 
-    # Create a multi-part email instance
     email = EmailMultiAlternatives(
         subject=subject,
-        body=text_content,  # Plain text version for fallback
+        body=text_content,
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[user.email],
     )
-    
-    # Attach the HTML version with the correct MIME type
     email.attach_alternative(html_content, "text/html")
-    print(html_content)
-    # Send the email
-    # email.send(fail_silently=False)
-    
+    email.send(fail_silently=False)
+    return True
+
  

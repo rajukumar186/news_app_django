@@ -39,13 +39,15 @@ def password_reset_request(request):
              
             send_password_reset_email(request, user)
              
-        return redirect("password_reset_done")
+            return redirect("password_reset_done")
+        else:
+            messages.error(request, "No user found with this email address.")
         
-    return render(request, 'registration/password_reset.html')
+    return render(request, 'user/password_reset.html')
 
 def password_reset_done(request):
     
-    return render(request, 'registration/password_reset_done.html')
+    return render(request, 'user/password_reset_done.html')
  
 
 # View 2: The actual reset (Using your existing logic)
@@ -59,13 +61,20 @@ def password_reset_confirm(request, uidb64, token):
     if user is not None and default_token_generator.check_token(user, token):
         if request.method == 'POST':
             password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+
+            if not password or password != confirm_password:
+                return render(request, 'user/password_reset_confirm.html', {
+                    'error': 'Passwords do not match or are empty.'
+                })
+
             user.set_password(password)
             user.save()
             auth_login(request, user)
-            return redirect('home') 
-        return render(request, 'registration/password_reset_confirm.html')
+             
+        return render(request, 'user/password_reset_confirm.html')
     else:
-        return render(request, 'registration/link_invalid.html')
+        return render(request, 'user/link_invalid.html')
     
 
 def signup_view(request):
@@ -97,19 +106,19 @@ def signup_view(request):
                 except Exception as e:
                     print(f"DEBUG - Email sending failed: {e}")
                     messages.error(request, "Could not send verification email. Please try again.")
-                    return render(request, 'registration/signup.html', {'form': form})
+                    return render(request, 'user/signup.html', {'form': form})
                 
-                return render(request, 'registration/signup_done.html', {'email': email})
+                return render(request, 'user/signup_done.html', {'email': email})
             else:
                 messages.error(request, "This email is already verified. Please log in.")
-                return render(request, 'registration/signup.html', {
+                return render(request, 'user/signup.html', {
                     'form': form, 
                     'error': "This email is already verified. Please log in."
                 })
     else:
         form = SignupEmailForm()
         
-    return render(request, 'registration/signup.html', {'form': form})
+    return render(request, 'user/signup.html', {'form': form})
 
 def set_password_confirm(request, uidb64, token):
     """ The view users land on from their email """
@@ -125,7 +134,7 @@ def set_password_confirm(request, uidb64, token):
             confirm_password = request.POST.get('confirm_password')
 
             if password != confirm_password:
-                return render(request, 'registration/set_password_form.html', {
+                return render(request, 'user/set_password_form.html', {
                     'error': "Passwords do not match. Please try again."
                 })
             user.set_password(password)
@@ -134,9 +143,9 @@ def set_password_confirm(request, uidb64, token):
             auth_login(request, user)
             return redirect('home')
         
-        return render(request, 'registration/set_password_form.html')
+        return render(request, 'user/set_password_form.html')
     else:
-        return render(request, 'registration/link_invalid.html')
+        return render(request, 'user/link_invalid.html')
 
  
  
@@ -330,48 +339,7 @@ def weather_view(request):
 
     return render(request, "weather.html", context)
 
-def weather_vi(request):
-    # 1. Get Client IP
-    # client_ip, is_routable = get_client_ip(request)
-    
-    # # 2. Get City from search or default to "Auto"
-    # city = request.GET.get('city', '')
-    
-    # # If no city is searched, wttr.in uses the IP address to find the location
-    # if not city:
-    #     query = client_ip if client_ip and client_ip != '127.0.0.1' else 'Noida'
-    # else:
-    #     query = city
-
-    # try:
-    #     # We append ?format=j1 to get a professional JSON response
-    #     url = f"https://wttr.in/{query}?format=j1"
-    #     response = requests.get(url)
-    #     data = response.json()
-
-    #     # Extracting current conditions
-    #     current = data['current_condition'][0]
-        
-    #     # Extracting hourly forecast for the chart (next 8 data points)
-    #     # wttr.in provides data in 3-hour intervals
-    #     forecast_list = data['weather'][0]['hourly']
-    #     labels = [f"{h['time'][:-2]}:00" for h in forecast_list]
-    #     temps = [h['tempC'] for h in forecast_list]
-
-    #     context = {
-    #         'city': data['nearest_area'][0]['areaName'][0]['value'],
-    #         'temp': current['temp_C'],
-    #         'humidity': current['humidity'],
-    #         'wind': current['windspeedKmph'],
-    #         'description': current['weatherDesc'][0]['value'],
-    #         'chart_labels': labels,
-    #         'chart_temps': temps,
-    #     }
-    # except Exception as e:
-    #     context = {'error': "Could not fetch weather data. Try a specific city name."}
-    context={}
-    return render(request, 'weather.html', context)
-
+ 
 def home(request):
     posts = NewsPost.objects.all().order_by('-created_at')
     videos = VideoPost.objects.all().order_by('-uploaded_at')
@@ -387,6 +355,7 @@ def log_view(request):
     # Fetch the last 50 visits, newest first
     logs = VisitorLog.objects.all().order_by('-timestamp')[:50]
     return render(request, 'log.html', {'logs': logs})
+
 def contact(request):
     if request.method == "POST":
         # Extract data from the POST request using the 'name' attribute from your HTML
