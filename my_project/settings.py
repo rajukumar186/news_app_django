@@ -178,12 +178,7 @@ USE_I18N = True
 USE_TZ = True
  
 # Set the time zone to India
-TIME_ZONE = 'Asia/Kolkata'
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
- 
+TIME_ZONE = 'Asia/Kolkata' 
 
 # This tells Django where to collect static files for production
 STATIC_ROOT = BASE_DIR / 'staticfiles'

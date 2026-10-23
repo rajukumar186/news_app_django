@@ -21,6 +21,8 @@ from main_app import views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
+from main_app.views import CustomPasswordResetConfirmView,CustomPasswordResetDoneView
+
 urlpatterns = [
     
     
@@ -45,20 +47,32 @@ urlpatterns = [
     path('signup/', views.signup_view, name='signup'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     
-    #password forget
+    
    path('forgot-password/', views.password_reset_request, name='password_reset_new'),
     
     # 2. THE FIX: You MUST define this exact name to stop the Admin redirect
-    path('forgot-password/done/', 
-         auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), 
-         name='password_reset_done'),
+    # path('forgot-password/done/', 
+    #      auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), 
+    #      name='password_reset_done'),
 
-    # 3. The link from the email (needed for the next step)
-    path('reset/<uidb64>/<token>/', 
-         auth_views.PasswordResetConfirmView.as_view(template_name="registration/password_reset_confirm.html"), 
-         name='password_reset_confirm'),
+    # # 3. The link from the email (needed for the next step)
+    # path('reset/<uidb64>/<token>/', 
+    #      auth_views.PasswordResetConfirmView.as_view(template_name="registration/password_reset_confirm.html"), 
+    #      name='password_reset_confirm'),
     
-    
+    # 2. Reset email sent confirmation
+    path(
+        'forgot-password/done/', 
+        CustomPasswordResetDoneView.as_view(), 
+        name='password_reset_done'
+    ),
+
+    # 3. Custom token link handler
+    path(
+        'reset/<uidb64>/<token>/', 
+        CustomPasswordResetConfirmView.as_view(), 
+        name='password_reset_confirm'
+    ),
     path('generate/', views.create_id_card, name='create_id_card'),
     path('card/<uuid:card_id>/', views.view_id_card, name='view_id_card'),
     path('verify/<uuid:card_id>/', views.verify_id_card, name='verify_id_card'),
@@ -74,3 +88,7 @@ urlpatterns = [
     path('api/stocks/', views.get_stock_data, name='stock_api'),
     path("admin/", admin.site.urls),
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+handler404 = 'main_app.views.custom_404_view'
+handler500 = 'main_app.views.custom_500_view'

@@ -1,56 +1,34 @@
+
 from django.shortcuts import render,redirect,get_object_or_404
-import requests
-# Create your views here.
+import requests 
 from django.http import JsonResponse
 from nsepython import nse_quote_ltp
-from django.http import HttpResponse
-
- 
+from django.http import HttpResponse 
 from gnews import GNews
 from django.contrib import messages
 from django.conf import settings
 from ipware import get_client_ip
 import ipinfo
 from .forms import VideoUploadForm
-from django.core.mail import send_mail
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
- 
-
-from django.contrib.auth.decorators import login_required,user_passes_test
- 
-from .models import Promotion, NewsPost, VisitorLog,VideoPost,ContactMessage # Import your models
-from django.contrib.auth.models import User
-
-# from .forms import EmailSignUpForm
-from django.shortcuts import get_object_or_404, redirect, render
+from django.core.mail import send_mail 
+from django.contrib.auth.tokens import default_token_generator 
+from django.contrib.auth.decorators import login_required,user_passes_test 
+from .models import Promotion, NewsPost, VisitorLog,VideoPost,ContactMessage  
+from django.contrib.auth.models import User 
 from .forms import IDCardForm
-from .models import IDCard
-
-#updated code based on validation
-
-import uuid
-from django.shortcuts import render, redirect
-from django.contrib.auth import get_user_model
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
+from .models import IDCard 
+import uuid 
+import pandas as pd
+from django.utils.http import  urlsafe_base64_decode
+from django.utils.encoding import force_str
 from .forms import SignupEmailForm  # The form we discussed
-from .utils import send_verification_invite,send_password_reset_email # Your email function
-
-User = get_user_model()
- 
-from django.contrib.auth.models import User
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.template.loader import render_to_string
-from django.core.mail import send_mail
+from .utils import send_verification_invite,send_password_reset_email # Your email function  
+from django.contrib.auth.models import User 
 from django.contrib.sites.shortcuts import get_current_site
-from django.shortcuts import render, redirect
-
-from django.shortcuts import render, redirect
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.views import PasswordResetConfirmView
+from django.urls import reverse_lazy
+from django.contrib.auth.views import PasswordResetDoneView
 
 def password_reset_request(request):
     if request.method == "POST":
@@ -58,15 +36,15 @@ def password_reset_request(request):
         user = User.objects.filter(email=email).first()
         
         if user:
-            # Call our new helper function
+             
             send_password_reset_email(request, user)
-            
-        # We always redirect to 'done' for security (so users can't fish for emails)
+             
         return redirect("password_reset_done")
         
     return render(request, 'registration/password_reset.html')
 
 def password_reset_done(request):
+    
     return render(request, 'registration/password_reset_done.html')
  
 
@@ -83,39 +61,54 @@ def password_reset_confirm(request, uidb64, token):
             password = request.POST.get('password')
             user.set_password(password)
             user.save()
-            return redirect('login') 
+            auth_login(request, user)
+            return redirect('home') 
         return render(request, 'registration/password_reset_confirm.html')
     else:
         return render(request, 'registration/link_invalid.html')
     
 
 def signup_view(request):
+    '''
+    This method is updated using ai
+    '''
     if request.method == 'POST':
         form = SignupEmailForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data.get('email')
             
-            # Check if user exists, otherwise create a placeholder user
-            user, created = User.objects.get_or_create(
-                email=email,
-                defaults={
-                    'username': email.split('@')[0] + str(uuid.uuid4())[:8],
-                    'is_active': False
-                }
-            )
+            # Safely check if a user with this email already exists
+            user = User.objects.filter(email=email).first()
             
+            if user is None:
+                # Create the user with username EXACTLY matching the email
+                user = User.objects.create(
+                    email=email,
+                    username=email,  # <-- Username and email are identical
+                    is_active=False
+                )
+                created = True
+            else:
+                created = False
+
             if created or not user.is_active:
-                send_verification_invite(user)
-                #comment only testing purpose
+                try: 
+                    send_verification_invite(request,user)
+                except Exception as e:
+                    print(f"DEBUG - Email sending failed: {e}")
+                    messages.error(request, "Could not send verification email. Please try again.")
+                    return render(request, 'registration/signup.html', {'form': form})
+                
                 return render(request, 'registration/signup_done.html', {'email': email})
             else:
-                # User exists and is already active
+                messages.error(request, "This email is already verified. Please log in.")
                 return render(request, 'registration/signup.html', {
                     'form': form, 
                     'error': "This email is already verified. Please log in."
                 })
     else:
         form = SignupEmailForm()
+        
     return render(request, 'registration/signup.html', {'form': form})
 
 def set_password_confirm(request, uidb64, token):
@@ -138,29 +131,21 @@ def set_password_confirm(request, uidb64, token):
             user.set_password(password)
             user.is_active = True # Activate the user now
             user.save()
-            return redirect('login')
+            auth_login(request, user)
+            return redirect('home')
         
         return render(request, 'registration/set_password_form.html')
     else:
         return render(request, 'registration/link_invalid.html')
 
  
-
-
-
+ 
 def toggle_theme(request):
-    # Get the current theme from cookies, default to 'light'
-    current_theme = request.COOKIES.get('theme', 'light')
-    
-    # Switch the value
-    new_theme = 'dark' if current_theme == 'light' else 'light'
-    
-    # Redirect to the previous page the user was looking at
-    response = redirect(request.META.get('HTTP_REFERER', '/'))
-    
-    # Save the new theme in a cookie (valid for 1 year)
-    response.set_cookie('theme', new_theme, max_age=31536000, path='/')
-    
+     
+    current_theme = request.COOKIES.get('theme', 'light') 
+    new_theme = 'dark' if current_theme == 'light' else 'light' 
+    response = redirect(request.META.get('HTTP_REFERER', '/')) 
+    response.set_cookie('theme', new_theme, max_age=31536000, path='/') 
     return response
  
 def news_detail(request, slug):
@@ -192,11 +177,12 @@ def create_news(request):
             post.save()
 
             messages.success(request, f"Successfully published: {title}")
-            return redirect('home') # Replace with your news feed URL name
+            return redirect('home')  
         else:
             messages.error(request, "Please fill in all required fields.")
 
     return render(request, 'news_artical.html')
+
 @login_required
 def create_promotion(request):
     if request.method == 'POST':
@@ -270,51 +256,79 @@ def profile_view(request):
     else:
         form = VideoUploadForm()
         return render(request, 'profile.html', {'form': form})
+    
 def weather_view(request):
-  import pandas as pd
-  # Open-Meteo historical weather API for Delhi coordinates (Lat: 28.6139, Lon: 77.2090)
-  url = (
-      "https://archive-api.open-meteo.com/v1/archive?latitude=28.6139&longitude=77.2090&start_date=2026-09-28&end_date=2026-10-07&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,relative_humidity_2m_mean"
-  )
+    # Get the city name from request parameters, defaulting to "Delhi"
+    city_name = request.GET.get("city", "Delhi")
 
-  try:
-    response = requests.get(url)
-    data = response.json()
+    # 1. Use Open-Meteo Geocoding API to find latitude, longitude, and actual city name
+    geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city_name}&count=1"
+    
+    try:
+        geo_response = requests.get(geo_url)
+        geo_data = geo_response.json()
 
-    # Convert to Pandas DataFrame
-    df = pd.DataFrame({
-        "date": data["daily"]["time"],
-        "max_temp": data["daily"]["temperature_2m_max"],
-        "min_temp": data["daily"]["temperature_2m_min"],
-        "precipitation": data["daily"]["precipitation_sum"],
-        "humidity": data["daily"]["relative_humidity_2m_mean"],
-    })
+        # Check if any location matched the search query
+        if "results" in geo_data and len(geo_data["results"]) > 0:
+            location = geo_data["results"][0]
+            lat = location["latitude"]
+            lon = location["longitude"]
+            resolved_city = location.get("name", city_name)
+            country = location.get("country", "")
+            display_location = f"{resolved_city}, {country}" if country else resolved_city
+        else:
+            # Fallback to Delhi if city is not found
+            lat, lon = 28.6139, 77.2090
+            display_location = f"Delhi ('{city_name}' not found)"
 
-    # Extract lists for chart visualization in your template
-    dates = df["date"].tolist()
-    max_temps = df["max_temp"].tolist()
-    min_temps = df["min_temp"].tolist()
+        # 2. Fetch Forecast Weather Data using the resolved coordinates
+        weather_url = (
+            f"https://api.open-meteo.com/v1/forecast"
+            f"?latitude={lat}&longitude={lon}"
+            f"&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,relative_humidity_2m_mean"
+            f"&timezone=auto"
+        )
 
-    # Get the latest day's metrics for quick stats display
-    latest = df.iloc[-1]
+        response = requests.get(weather_url)
+        data = response.json()
 
-    context = {
-        "city": "Delhi",
-        "date": latest["date"],
-        "temp": latest["max_temp"],
-        "humidity": latest["humidity"],
-        "precipitation": latest["precipitation"],
-        "chart_labels": dates,
-        "chart_max_temps": max_temps,
-        "chart_min_temps": min_temps,
-        "weather_table": df.to_dict(orient="records"),  # Optional: for table display
-    }
-  except Exception as e:
-    context = {
-        "error": "Could not fetch weather data. Please check your network or API URL."
-    }
+        # Convert to Pandas DataFrame
+        df = pd.DataFrame({
+            "date": data["daily"]["time"],
+            "max_temp": data["daily"]["temperature_2m_max"],
+            "min_temp": data["daily"]["temperature_2m_min"],
+            "precipitation": data["daily"]["precipitation_sum"],
+            "humidity": data["daily"]["relative_humidity_2m_mean"],
+        })
 
-  return render(request, "weather.html", context)
+        # Extract lists for charts
+        dates = df["date"].tolist()
+        max_temps = df["max_temp"].tolist()
+        min_temps = df["min_temp"].tolist()
+        print(df)
+        # Get latest day's metrics
+        latest = df.iloc[-1]
+
+        context = {
+            "city": display_location,
+            "latitude": lat,
+            "longitude": lon,
+            "date": latest["date"],
+            "temp": latest["max_temp"],
+            "humidity": latest["humidity"],
+            "precipitation": latest["precipitation"],
+            "chart_labels": dates,
+            "chart_max_temps": max_temps,
+            "chart_min_temps": min_temps,
+            "weather_table": df.to_dict(orient="records"),
+        }
+
+    except Exception as e:
+        context = {
+            "error": "Could not fetch weather data. Please check your network or city name."
+        }
+
+    return render(request, "weather.html", context)
 
 def weather_vi(request):
     # 1. Get Client IP
@@ -390,7 +404,8 @@ def contact(request):
         )
         
         # Redirect or show a success message
-        return render(request, 'contact.html', {'success': True})
+        messages.success(request, "Thank you for your query, we will be back as soon as possible.")
+        return redirect('contact')
 
     return render(request, 'contact.html')
 
@@ -463,4 +478,39 @@ def verify_id_card(request, card_id):
     id_card = get_object_or_404(IDCard, id=card_id)
     return render(request, 'verify_result.html', {'id_card': id_card})
 
+'''############################################################################
+    Error handle view
+   ############################################################################
+'''
+
+def custom_404_view(request, exception=None):
+    """
+    Custom 404 handler view to render the 404 error template.
+    """
+    return render(request, '404.html', status=404)
+def custom_500_view(request):
+    """Custom 500 handler (Server Error)."""
+    return render(request, '500.html', status=500)
+
+'''############################################################################
+    Forget password class
+   ############################################################################
+'''
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    # Path to your custom template
+    template_name = 'registration/password_reset_confirm.html'
+    
+    # Direct everyone to your custom login view upon success
+    success_url = reverse_lazy('login')
+
+    def form_valid(self, form):
+        # Attach a notification message before completing
+        messages.success(
+            self.request, 
+            "Your password has been successfully reset! Please log in with your new password."
+        )
+        return super().form_valid(form)
+class CustomPasswordResetDoneView(PasswordResetDoneView):
+    template_name = 'registration/password_reset_done.html'
 
