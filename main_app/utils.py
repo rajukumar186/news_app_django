@@ -66,17 +66,25 @@ def send_password_reset_email(request, user):
     subject = "Password Reset Requested - The People's Era"
     
     # Render the HTML template
-    html_content = render_to_string("registration/password_reset_email.html", context)
+    html_content = render_to_string("user/password_reset_email.html", context)
     text_content = strip_tags(html_content)
-
-    email = EmailMultiAlternatives(
-        subject=subject,
-        body=text_content,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[user.email],
+    send_mail(
+        subject,
+        text_content,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        html_message=html_content,
+        fail_silently=False,
     )
-    email.attach_alternative(html_content, "text/html")
-    email.send(fail_silently=False)
+
+    # email = EmailMultiAlternatives(
+    #     subject=subject,
+    #     body=text_content,
+    #     from_email=settings.DEFAULT_FROM_EMAIL,
+    #     to=[user.email],
+    # )
+    # email.attach_alternative(html_content, "text/html")
+    # email.send(fail_silently=False)
     return True
 
  
