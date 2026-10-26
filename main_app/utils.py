@@ -68,6 +68,7 @@ def send_password_reset_email(request, user):
     # Render the HTML template
     html_content = render_to_string("user/password_reset_email.html", context)
     text_content = strip_tags(html_content)
+    # print(text_content)
     send_mail(
         subject,
         text_content,

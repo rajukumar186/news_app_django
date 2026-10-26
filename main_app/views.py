@@ -461,25 +461,5 @@ def custom_500_view(request):
     """Custom 500 handler (Server Error)."""
     return render(request, '500.html', status=500)
 
-'''############################################################################
-    Forget password class
-   ############################################################################
-'''
-
-class CustomPasswordResetConfirmView(PasswordResetConfirmView):
-    # Path to your custom template
-    template_name = 'registration/password_reset_confirm.html'
-    
-    # Direct everyone to your custom login view upon success
-    success_url = reverse_lazy('login')
-
-    def form_valid(self, form):
-        # Attach a notification message before completing
-        messages.success(
-            self.request, 
-            "Your password has been successfully reset! Please log in with your new password."
-        )
-        return super().form_valid(form)
-class CustomPasswordResetDoneView(PasswordResetDoneView):
-    template_name = 'registration/password_reset_done.html'
-
+def health_check(request):
+    return HttpResponse("OK", status=200)

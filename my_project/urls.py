@@ -21,11 +21,9 @@ from main_app import views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-from main_app.views import CustomPasswordResetConfirmView,CustomPasswordResetDoneView
+ 
 
-urlpatterns = [
-    
-    
+urlpatterns = [ 
     path('', views.home, name='home'),
     path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
     path('superadmin/', views.superadmin_dashboard, name='superadmin'),
@@ -37,58 +35,31 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('weather/', views.weather_view, name='weather'),
     path('fullnews/<slug:slug>/', views.news_detail, name='news_detail'),
-    path(
-        'set-password/<str:uidb64>/<str:token>/', 
-        views.set_password_confirm, 
-        name='set_password_confirm'
-    ),
+    path('set-password/<str:uidb64>/<str:token>/', views.set_password_confirm,  name='set_password_confirm'),
     path('get_news/', views.get_trending_news, name='get_news'),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('signup/', views.signup_view, name='signup'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    
-    
-   path('forgot-password/', views.password_reset_request, name='password_reset_new'),
-    
-    # 2. THE FIX: You MUST define this exact name to stop the Admin redirect
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'), 
+    path('forgot-password/', views.password_reset_request, name='password_reset_new'),  
     path('forgot-password/done/', 
-         auth_views.PasswordResetDoneView.as_view(template_name='user/password_reset_done.html'), 
-         name='password_reset_done'),
-
-    # 3. The link from the email (needed for the next step)
+    auth_views.PasswordResetDoneView.as_view(template_name='user/password_reset_done.html'), 
+    name='password_reset_done'),  
     path('reset/<uidb64>/<token>/', 
-         auth_views.PasswordResetConfirmView.as_view(template_name="user/password_reset_confirm.html"), 
-         name='password_reset_confirm'),
-    
-    # 2. Reset email sent confirmation
-    # path(
-    #     'forgot-password/done/', 
-    #     CustomPasswordResetDoneView.as_view(), 
-    #     name='password_reset_done'
-    # ),
-
-    # # 3. Custom token link handler
-    # path(
-    #     'reset/<uidb64>/<token>/', 
-    #     CustomPasswordResetConfirmView.as_view(), 
-    #     name='password_reset_confirm'
-    # ),
+    auth_views.PasswordResetConfirmView.as_view(template_name="user/password_reset_confirm.html"), 
+    name='password_reset_confirm'), 
+    path('password-reset-complete/',
+    auth_views.PasswordResetCompleteView.as_view(template_name='user/password_reset_complete.html'),
+    name='password_reset_complete'),  
     path('generate/', views.create_id_card, name='create_id_card'),
     path('card/<uuid:card_id>/', views.view_id_card, name='view_id_card'),
-    path('verify/<uuid:card_id>/', views.verify_id_card, name='verify_id_card'),
-    
-    
-    # path('forgot-password/', views.password_reset_request, name='password_reset_new'),
-    # path('reset-password-confirm/<str:uidb64>/<str:token>/', views.password_reset_confirm, name='password_reset_confirm'),
-    
-    # path('password-reset/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset.html',success_url=reverse_lazy('password_reset_done')), name='password_reset_new'),
-    # path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
-    # path('password-reset/done/', views.password_reset, name='password_reset_done'),
+    path('verify/<uuid:card_id>/', views.verify_id_card, name='verify_id_card'), 
     path('log/', views.log_view, name='log'),
     path('api/stocks/', views.get_stock_data, name='stock_api'),
+    path('health/', views.health_check, name='health_check'),
     path("admin/", admin.site.urls),
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-
+ 
 handler404 = 'main_app.views.custom_404_view'
 handler500 = 'main_app.views.custom_500_view'
+ 
