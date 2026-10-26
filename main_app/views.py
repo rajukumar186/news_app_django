@@ -28,7 +28,11 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.views import PasswordResetConfirmView
 from django.urls import reverse_lazy
-from django.contrib.auth.views import PasswordResetDoneView
+from django.core.cache import cache
+from django.contrib.auth.views import PasswordResetDoneView 
+
+GNEWS_CACHE_KEY = 'gnews_top_headlines'
+GNEWS_CACHE_TIMEOUT = 60 * 15
 
 def password_reset_request(request):
     if request.method == "POST":
@@ -339,22 +343,55 @@ def weather_view(request):
 
     return render(request, "weather.html", context)
 
- 
+
+
+
 def home(request):
-    posts = NewsPost.objects.all().order_by('-created_at')
-    videos = VideoPost.objects.all().order_by('-uploaded_at')
-    google_news = GNews(language='en', country='US', period='7d', max_results=10)
+   
+  posts = NewsPost.objects.all().order_by('-created_at')
+  videos = VideoPost.objects.all().order_by('-uploaded_at')
+ 
+  articles = cache.get(GNEWS_CACHE_KEY)
+
+  # 3. If cache is empty (Cache Miss), fetch fresh data from GNews API
+  if articles is None:
+    print("Cache miss: Fetching fresh data from GNews API")
+    api_key = settings.GNEWS_API_KEY
+    url = f'https://gnews.io/api/v4/top-headlines?category=general&lang=en&apikey={api_key}'
+
+    try:
+      response = requests.get(url, timeout=5)
+      if response.status_code == 200:
+        data = response.json()
+        articles = data.get('articles', [])
+ 
+        cache.set(GNEWS_CACHE_KEY, articles, GNEWS_CACHE_TIMEOUT)
+      else:
+        print(f'GNews API Error: {response.status_code} {response.text}')
+        articles = []
+    except requests.RequestException as e:
+      print(f'Error fetching news: {e}')
+      articles = []
+
+  # 4. Serve response
+  context = {'posts': posts, 'videos': videos, 'api_news': articles}
+
+  return render(request, 'home.html', context)
+# def home(request):
+#     posts = NewsPost.objects.all().order_by('-created_at')
+#     videos = VideoPost.objects.all().order_by('-uploaded_at')
+#     google_news = GNews(language='en', country='IN', period='7d', max_results=100)
     
-    # 2. Fetch the news (returns a list of dictionaries)
-    trending_news = google_news.get_top_news()
-    context = {
-        'posts': posts,
-        'videos': videos,
-        'api_news': trending_news
-    }
+#     # 2. Fetch the news (returns a list of dictionaries)
+#     trending_news = google_news.get_top_news()
+#     context = {
+#         'posts': posts,
+#         'videos': videos,
+#         'api_news': trending_news
+#     }
     
    
-    return render(request, 'home.html', context)
+#     return render(request, 'home.html', context)
 
 def log_view(request):
     # Fetch the last 50 visits, newest first
