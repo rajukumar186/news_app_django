@@ -6,6 +6,7 @@ import qrcode
 from io import BytesIO
 from django.core.files import File
 from datetime import datetime
+
 class VisitorLog(models.Model):
     ip_address = models.GenericIPAddressField()
     page_visited = models.CharField(max_length=255)
