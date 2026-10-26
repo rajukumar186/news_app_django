@@ -343,9 +343,14 @@ def weather_view(request):
 def home(request):
     posts = NewsPost.objects.all().order_by('-created_at')
     videos = VideoPost.objects.all().order_by('-uploaded_at')
+    google_news = GNews(language='en', country='US', period='7d', max_results=10)
+    
+    # 2. Fetch the news (returns a list of dictionaries)
+    trending_news = google_news.get_top_news()
     context = {
         'posts': posts,
-        'videos': videos
+        'videos': videos,
+        'api_news': trending_news
     }
     
    
@@ -387,14 +392,8 @@ def about(request):
  
 def get_trending_news(request):
     # 1. Initialize GNews
-    google_news = GNews(language='en', country='US', period='7d', max_results=10)
-    
-    # 2. Fetch the news (returns a list of dictionaries)
-    trending_news = google_news.get_top_news()
-    
-    # 3. Return as JsonResponse
-    # 'safe=False' is required because we are passing a List, not a Dictionary
-    return JsonResponse(trending_news, safe=False, json_dumps_params={'indent': 4})
+    pass
+     
 
 
 def homett(request):
