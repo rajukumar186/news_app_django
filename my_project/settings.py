@@ -46,6 +46,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 3. Replace hardcoded values with os.getenv()
 SECRET_KEY = os.getenv('SECRET_KEY')
+# NEWS_API_KEY = os.getenv('NEWS_API_KEY')
+GNEWS_API_KEY = os.getenv('GNEWS_API_KEY')
 DEBUG = os.getenv('DEBUG') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
@@ -173,6 +175,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+# HANDLE CACHES
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
