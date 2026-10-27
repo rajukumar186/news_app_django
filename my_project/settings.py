@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 3. Replace hardcoded values with os.getenv()
 SECRET_KEY = os.getenv('SECRET_KEY')
-# NEWS_API_KEY = os.getenv('NEWS_API_KEY')
+NEWS_API_KEY = os.getenv('NEWS_API_KEY')
 GNEWS_API_KEY = os.getenv('GNEWS_API_KEY')
 DEBUG = os.getenv('DEBUG') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
