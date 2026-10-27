@@ -21,6 +21,8 @@ from main_app import views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
+from django.urls import include, path, re_path
+from django.views.static import serve
  
 
 urlpatterns = [ 
@@ -57,7 +59,23 @@ urlpatterns = [
     path('api/stocks/', views.get_stock_data, name='stock_api'),
     path('health/', views.health_check, name='health_check'),
     path("admin/", admin.site.urls),
-]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+if settings.DEBUG:
+  urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# 2. Force handling for production on Render (DEBUG = False)
+else:
+  urlpatterns += [
+      re_path(
+          r'^media/(?P<path>.*)$',
+          serve,
+          {'document_root': settings.MEDIA_ROOT},
+      ),
+  ]
+
+
+ 
 
  
 handler404 = 'main_app.views.custom_404_view'

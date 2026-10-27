@@ -344,7 +344,31 @@ def weather_view(request):
 
     return render(request, "weather.html", context)
 
+def get_india_news(api_key):
+  url = 'https://newsdata.io/api/1/news'
+  params = {'apikey': api_key, 'country': 'in', 'language': 'en'}
 
+  try:
+    response = requests.get(url, params=params, timeout=10)
+    if response.status_code == 200:
+      data = response.json()
+      articles = []
+      for item in data.get('results', []):
+        articles.append({
+            'title': item.get('title'),
+            'description': item.get('description'),
+            'image_url': item.get('image_url'),
+            'url': item.get('link'),
+            'source': item.get('source_id'),
+            'published_at': item.get('pubDate'),
+        })
+      return articles
+    else:
+      print(f'API Error: {response.status_code} - {response.text}')
+      return []
+  except requests.RequestException as e:
+    print(f'Request failed: {e}')
+    return []
 
 
 def home(request):
@@ -377,21 +401,10 @@ def home(request):
   if indian_articles is None:
     print("Cache miss: Fetching fresh data from INews API")
     api_key = settings.NEWS_API_KEY
-    url = f'https://newsdata.io/api/1/news?apikey={api_key}&country=in&language=en'
-
-    try:
-      response = requests.get(url, timeout=5)
-      if response.status_code == 200:
-        data = response.json()
-        indian_articles = data.get('articles', [])
- 
-        cache.set(INEWS_CACHE_KEY, indian_articles, 900)
-      else:
-        print(f'INews API Error: {response.status_code} {response.text}')
-        indian_articles = []
-    except requests.RequestException as e:
-      print(f'Error fetching news: {e}')
-      indian_articles = []
+     
+    indian_articles = get_india_news(api_key)
+    cache.set(INEWS_CACHE_KEY, indian_articles, 900)
+      
 
   # 4. Serve response
   context = {'posts': posts, 'videos': videos, 'api_news': articles,'india_news':indian_articles}
