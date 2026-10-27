@@ -6,7 +6,7 @@ admin.site.index_title = "Welcome to the Super Admin Dashboard"
 from .models import Promotion
 
 from django.utils.html import format_html
-from .models import NewsPost,ContactMessage,IDCard
+from .models import NewsPost,ContactMessage,IDCard,SiteNotice
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
@@ -102,3 +102,9 @@ class IDCardAdmin(admin.ModelAdmin):
     search_fields = ('full_name', 'employee_id', 'email', 'designation')
     list_filter = ('designation', 'created_at')
     readonly_fields = ('id', 'qr_code', 'created_at')
+
+
+@admin.register(SiteNotice)
+class SiteNoticeAdmin(admin.ModelAdmin):
+    list_display = ('title', 'notice_type', 'is_active', 'created_at')
+    list_filter = ('notice_type', 'is_active')

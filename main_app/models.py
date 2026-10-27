@@ -162,5 +162,26 @@ class IDCard(models.Model):
     return f'{self.full_name} ({self.employee_id})'
 
 
+class SiteNotice(models.Model):
+    NOTICE_TYPES = [
+        ('celebration', '🎉 Celebration / Festival (Image/Animation Popup)'),
+        ('urgent', '⚠️ Urgent Notice / Alert (Top Banner)'),
+    ]
+
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    notice_type = models.CharField(max_length=20, choices=NOTICE_TYPES, default='urgent')
+    image = models.ImageField(upload_to='notices/', blank=True, null=True, help_text="Optional banner/festival image")
+    is_active = models.BooleanField(default=False, help_text="Check to display this notice on the home page")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __index__(self):
+        return f"{self.get_notice_type_display()} - {self.title}"
+
+    class Meta:
+        verbose_name = "Site Notice & Celebration"
+        verbose_name_plural = "Site Notices & Celebrations"
+
+
         
 

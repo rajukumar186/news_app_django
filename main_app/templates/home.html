@@ -47,6 +47,123 @@
         padding: 0 30px;
     }
 
+    /* --- NOTICE / CELEBRATION STYLES --- */
+    .urgent-notice-banner {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 14px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(192, 57, 43, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        animation: slideDown 0.4s ease-out;
+        z-index: 10;
+    }
+    .urgent-notice-banner .notice-content {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .urgent-notice-banner i {
+        font-size: 1.5rem;
+    }
+
+    .celebration-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .celebration-modal {
+        background: var(--card-bg);
+        color: var(--text-main);
+        width: 90%;
+        max-width: 450px;
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        position: relative;
+        border: 2px solid #f1c40f;
+        animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .celebration-modal img {
+        width: 100%;
+        max-height: 220px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .celebration-modal h2 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        color: #c0392b;
+    }
+
+    .celebration-modal p {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+
+    .notice-close-btn {
+        background: none;
+        border: none;
+        color: inherit;
+        font-size: 1.5rem;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+        padding: 0;
+        line-height: 1;
+    }
+    .notice-close-btn:hover {
+        opacity: 1;
+    }
+
+    .celebration-close-action {
+        background: #c0392b;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 30px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.2s;
+    }
+    .celebration-close-action:hover {
+        transform: scale(1.05);
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes popUp {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
     /* 3. THE DYNAMIC GRID */
     .news-grid {
         display: grid;
@@ -179,7 +296,7 @@
 
     @media (max-width: 650px) {
         .news-grid { grid-template-columns: 1fr; }
-        .home-container { padding: 0 20px; margin: 20px auto; }
+        .home-container { padding: 0 5px; margin: 5px auto; }
         .card-content { padding: 20px; }
     }
 </style>
@@ -188,6 +305,39 @@
 {% block content %}
 <div class="home-container">
     
+    <!-- SUPER ADMIN MANAGED NOTICE / CELEBRATION POPUP -->
+    {% if active_notice %}
+        {% if active_notice.notice_type == 'urgent' %}
+            <div id="site-notice-banner" class="urgent-notice-banner">
+                <div class="notice-content">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        <strong style="display: block; font-size: 1rem; margin-bottom: 2px;">{{ active_notice.title }}</strong>
+                        <span style="font-size: 0.9rem; opacity: 0.95;">{{ active_notice.message }}</span>
+                    </div>
+                </div>
+                <button class="notice-close-btn" onclick="dismissNotice('site-notice-banner')">&times;</button>
+            </div>
+        {% elif active_notice.notice_type == 'celebration' %}
+            <div id="site-notice-modal" class="celebration-overlay">
+                <div class="celebration-modal">
+                    <button class="notice-close-btn" onclick="dismissNotice('site-notice-modal')" style="position: absolute; top: 15px; right: 20px; color: var(--text-muted);">&times;</button>
+                    
+                    {% if active_notice.image %}
+                        <img src="{{ active_notice.image.url }}" alt="{{ active_notice.title }}">
+                    {% else %}
+                        <div style="font-size: 3rem; margin-bottom: 10px;">🎉🪔✨</div>
+                    {% endif %}
+
+                    <h2>{{ active_notice.title }}</h2>
+                    <p>{{ active_notice.message }}</p>
+                    
+                    <button class="celebration-close-action" onclick="dismissNotice('site-notice-modal')">Awesome, Thank You!</button>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+
     <!-- SECTION 1: DISCOVERY (Existing Posts) -->
     <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 15px 0;">Discovery</h2>
 
@@ -215,11 +365,11 @@
                 </div>
             </div>
         </div>
-        <!-- {% empty %}
+        {% empty %}
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 0;">
             <p style="color: var(--text-muted);">No local stories found.</p>
         </div>
-        {% endfor %} -->
+        {% endfor %}
     </div>
 
 
@@ -264,10 +414,8 @@
         {% for article in india_news %}
         <div class="news-card">
             <div class="img-container">
-                <!-- Uses article.source instead of article.publisher.title -->
                 <span class="category-badge">{{ article.source|default:"News" }}</span>
                 
-                <!-- Uses article.image_url instead of article.image -->
                 {% if article.image_url %}
                     <img src="{{ article.image_url }}" alt="{{ article.title }}">
                 {% else %}
@@ -283,7 +431,6 @@
                 
                 <div class="card-footer">
                     <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="read-btn">Full Story →</a>
-                    <!-- Uses article.published_at instead of article.published_date -->
                     <span style="font-size: 0.75rem; color: var(--text-muted);">{{ article.published_at|slice:":16" }}</span>
                 </div>
             </div>
@@ -296,4 +443,35 @@
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function dismissNotice(elementId) {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            el.style.opacity = '0';
+            if(el.classList.contains('celebration-overlay')) {
+                el.style.transform = 'scale(0.95)';
+            } else {
+                el.style.transform = 'translateY(-10px)';
+            }
+            setTimeout(() => el.remove(), 400);
+        }
+    }
+
+    // Auto-dismiss after 10 seconds (10000 milliseconds)
+    document.addEventListener('DOMContentLoaded', () => {
+        const urgentBanner = document.getElementById('site-notice-banner');
+        const celebrationModal = document.getElementById('site-notice-modal');
+
+        if (urgentBanner) {
+            setTimeout(() => dismissNotice('site-notice-banner'), 30000);
+        }
+        if (celebrationModal) {
+            setTimeout(() => dismissNotice('site-notice-modal'), 30000);
+        }
+    });
+</script>
 {% endblock %}

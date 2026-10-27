@@ -224,6 +224,60 @@
             border-top: 1px solid var(--border-color);
             font-size: 0.9rem;
         }
+        .floating-footer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 92%;
+            max-width: 480px;
+            background: var(--header-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border-radius: 40px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 15px;
+            z-index: 999;
+            backdrop-filter: blur(10px);
+        }
+
+        .floating-footer-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.25s ease;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .floating-footer-item i {
+            font-size: 1.2rem;
+            margin-bottom: 3px;
+            transition: transform 0.2s ease;
+        }
+
+        .floating-footer-item:hover,
+        .floating-footer-item.active {
+            color: var(--primary-color);
+            background: rgba(192, 57, 43, 0.08);
+        }
+
+        .floating-footer-item:hover i,
+        .floating-footer-item.active i {
+            transform: translateY(-2px);
+        }
+
+        /* Dark mode adjustment for floating footer shadow */
+        body.dark-mode .floating-footer {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            background: rgba(26, 26, 26, 0.95);
+        }
         
         
         /* --- FOOTER SOCIALS --- */
@@ -373,6 +427,11 @@
             footer {
                 margin-top: 36px;
                 padding: 30px 16px;
+            }
+            .floating-footer {
+                width: 94%;
+                bottom: 15px;
+                padding: 8px 10px;
             }
         }
 
@@ -534,11 +593,26 @@
 
     <footer>
         <p>&copy; 2026 The People's Era. All rights reserved.</p>
-            
-     
- 
-        
+           
     </footer>
+    <nav class="floating-footer">
+        <a href="/" class="floating-footer-item {% if request.path == '/' %}active{% endif %}">
+            <i class="fa-solid fa-house"></i>
+            <span>Home</span>
+        </a>
+        <a href="/weather" class="floating-footer-item {% if '/weather' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-cloud-sun"></i>
+            <span>Weather</span>
+        </a>
+        <a href="/stocks" class="floating-footer-item {% if '/stocks' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Stocks</span>
+        </a>
+        <a href="{% if user.is_authenticated %}{% url 'profile' %}{% else %}{% url 'login' %}{% endif %}" class="floating-footer-item {% if '/profile' in request.path or '/accounts/login' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
 
     <div id="google_translate_element"></div>
 

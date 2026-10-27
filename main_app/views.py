@@ -31,6 +31,7 @@ from django.urls import reverse_lazy
 from django.core.cache import cache
 from django.contrib.auth.views import PasswordResetDoneView 
 import yfinance as yf
+from django.core.paginator import Paginator
 
 GNEWS_CACHE_KEY = 'gnews_top_headlines'
 INEWS_CACHE_KEY='inews_top_headlines'
@@ -415,8 +416,15 @@ def home(request):
 
 def log_view(request):
     # Fetch the last 50 visits, newest first
-    logs = VisitorLog.objects.all().order_by('-timestamp')[:50]
-    return render(request, 'log.html', {'logs': logs})
+    logs = VisitorLog.objects.all().order_by('-timestamp') 
+    paginator = Paginator(log_list, 10) # 10 records per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(log_list)
+
+    context = {
+        'logs': log_list, # Passed to template for client-side search & pagination
+    }
+    return render(request, 'log.html', context)
 
 def contact(request):
     if request.method == "POST":
