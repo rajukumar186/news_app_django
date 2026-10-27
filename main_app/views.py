@@ -13,7 +13,7 @@ from .forms import VideoUploadForm
 from django.core.mail import send_mail 
 from django.contrib.auth.tokens import default_token_generator 
 from django.contrib.auth.decorators import login_required,user_passes_test 
-from .models import Promotion, NewsPost, VisitorLog,VideoPost,ContactMessage  
+from .models import Promotion, NewsPost, SiteNotice, VisitorLog,VideoPost,ContactMessage  
 from django.contrib.auth.models import User 
 from .forms import IDCardForm
 from .models import IDCard 
@@ -31,7 +31,7 @@ from django.urls import reverse_lazy
 from django.core.cache import cache
 from django.contrib.auth.views import PasswordResetDoneView 
 import yfinance as yf
-from django.core.paginator import Paginator
+ 
 
 GNEWS_CACHE_KEY = 'gnews_top_headlines'
 INEWS_CACHE_KEY='inews_top_headlines'
@@ -377,7 +377,7 @@ def home(request):
    
   posts = NewsPost.objects.all().order_by('-created_at')
   videos = VideoPost.objects.all().order_by('-uploaded_at')
- 
+  active_notice = SiteNotice.objects.filter(is_active=True).first() 
   articles = cache.get(GNEWS_CACHE_KEY)
 
   # 3. If cache is empty (Cache Miss), fetch fresh data from GNews API
@@ -409,7 +409,11 @@ def home(request):
       
 
   # 4. Serve response
-  context = {'posts': posts, 'videos': videos, 'api_news': articles,'india_news':indian_articles}
+  context = {'posts': posts, 
+             'videos': videos, 
+             'api_news': articles,
+             'india_news':indian_articles,
+             'active_notice': active_notice}
 
   return render(request, 'home.html', context)
  
@@ -417,12 +421,11 @@ def home(request):
 def log_view(request):
     # Fetch the last 50 visits, newest first
     logs = VisitorLog.objects.all().order_by('-timestamp') 
-    paginator = Paginator(log_list, 10) # 10 records per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(log_list)
+    
+     
 
     context = {
-        'logs': log_list, # Passed to template for client-side search & pagination
+        'logs': logs, # Passed to template for client-side search & pagination
     }
     return render(request, 'log.html', context)
 
