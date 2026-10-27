@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard | The People's Era{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- Header Banner -->
+    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+        <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">Platform Control Center</h1>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Select any module below to view, add, edit, or delete records.</p>
+    </div>
+
+    <!-- Modules Grid Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
+        {% for name, count in counts.items %}
+        <div class="card" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <span style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">{{ name }}</span>
+                <p style="font-size: 2rem; font-weight: 800; margin-top: 8px; color: var(--text-main);">{{ count }}</p>
+            </div>
+            <div style="margin-top: 24px; display: flex; gap: 10px;">
+                <a href="{% url 'dynamic_model_list' name %}" style="background-color: var(--primary-color); color: white; text-decoration: none; font-size: 0.8rem; font-weight: 600; padding: 8px 14px; border-radius: 6px; display: inline-block;">Manage</a>
+                <a href="{% url 'dynamic_model_create' name %}" style="background-color: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); text-decoration: none; font-size: 0.8rem; font-weight: 600; padding: 8px 14px; border-radius: 6px; display: inline-block;">+ Add</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

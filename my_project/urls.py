@@ -23,9 +23,22 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.urls import include, path, re_path
 from django.views.static import serve
- 
+from main_app.views import (
+    custom_super_admin_dashboard,
+    dynamic_model_list,
+    dynamic_model_create,
+    dynamic_model_edit,
+    dynamic_model_delete,
+)
+
 
 urlpatterns = [ 
+    path('secure-portal/dashboard/', custom_super_admin_dashboard, name='custom_admin_dashboard'),
+    path('secure-portal/<str:model_name>/', dynamic_model_list, name='dynamic_model_list'),
+    path('secure-portal/<str:model_name>/add/', dynamic_model_create, name='dynamic_model_create'),
+    path('secure-portal/<str:model_name>/edit/<str:pk>/', dynamic_model_edit, name='dynamic_model_edit'),
+    path('secure-portal/<str:model_name>/delete/<str:pk>/', dynamic_model_delete, name='dynamic_model_delete'),
+    
     path('', views.home, name='home'),
     path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
     path('superadmin/', views.superadmin_dashboard, name='superadmin'),

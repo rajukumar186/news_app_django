@@ -104,7 +104,10 @@ class IDCardAdmin(admin.ModelAdmin):
     readonly_fields = ('id', 'qr_code', 'created_at')
 
 
-@admin.register(SiteNotice)
+@admin.register(SiteNotice) 
 class SiteNoticeAdmin(admin.ModelAdmin):
-    list_display = ('title', 'notice_type', 'is_active', 'created_at')
-    list_filter = ('notice_type', 'is_active')
+    list_display = ('title', 'is_active', 'created_at')
+    list_filter = ('is_active', 'created_at')
+    search_fields = ('title', 'content') 
+    list_editable = ('is_active',)
+    ordering = ('-created_at',)

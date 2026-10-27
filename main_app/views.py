@@ -31,11 +31,111 @@ from django.urls import reverse_lazy
 from django.core.cache import cache
 from django.contrib.auth.views import PasswordResetDoneView 
 import yfinance as yf
- 
-
+from .models import VisitorLog, VideoPost, Promotion, ContactMessage, NewsPost, IDCard, SiteNotice
+from django.forms import modelform_factory
+from django.apps import apps
+from django.contrib.admin.views.decorators import staff_member_required
 GNEWS_CACHE_KEY = 'gnews_top_headlines'
 INEWS_CACHE_KEY='inews_top_headlines'
 GNEWS_CACHE_TIMEOUT = 60 * 15
+
+
+
+
+MODEL_MAP = {
+    'visitors': apps.get_model('main_app', 'VisitorLog'),
+    'videos': apps.get_model('main_app', 'VideoPost'),
+    'promotions': apps.get_model('main_app', 'Promotion'),
+    'messages': apps.get_model('main_app', 'ContactMessage'),
+    'news': apps.get_model('main_app', 'NewsPost'),
+    'idcards': apps.get_model('main_app', 'IDCard'),
+    'sitenotices': apps.get_model('main_app', 'SiteNotice'),
+}
+
+@staff_member_required
+def custom_super_admin_dashboard(request):
+    # Dynamically fetch counts for all models
+    dashboard_data = {
+        name: model.objects.count() for name, model in MODEL_MAP.items()
+    }
+    return render(request, 'admin/custom_dashboard.html', {'counts': dashboard_data})
+
+@staff_member_required
+def dynamic_model_list(request, model_name):
+    if model_name not in MODEL_MAP:
+        return redirect('custom_admin_dashboard')
+    
+    model = MODEL_MAP[model_name]
+    objects = model.objects.all().order_by('-pk')[:100]
+    fields = [f.name for f in model._meta.fields]
+    
+    context = {
+        'model_name': model_name,
+        'model_verbose': model._meta.verbose_name_plural.title(),
+        'objects': objects,
+        'fields': fields,
+    }
+    return render(request, 'admin/dynamic_list.html', context)
+
+@staff_member_required
+def dynamic_model_create(request, model_name):
+    if model_name not in MODEL_MAP:
+        return redirect('custom_admin_dashboard')
+    
+    model = MODEL_MAP[model_name]
+    DynamicForm = modelform_factory(model, exclude=[])
+    
+    if request.method == 'POST':
+        form = DynamicForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Record created successfully!")
+            return redirect('dynamic_model_list', model_name=model_name)
+    else:
+        form = DynamicForm()
+        
+    return render(request, 'admin/dynamic_form.html', {'form': form, 'model_name': model_name, 'action': 'Create'})
+
+@staff_member_required
+def dynamic_model_edit(request, model_name, pk):
+    if model_name not in MODEL_MAP:
+        return redirect('custom_admin_dashboard')
+    
+    model = MODEL_MAP[model_name]
+    obj = get_object_or_404(model, pk=pk)
+    DynamicForm = modelform_factory(model, exclude=[])
+    
+    if request.method == 'POST':
+        form = DynamicForm(request.POST, request.FILES, instance=obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Record updated successfully!")
+            return redirect('dynamic_model_list', model_name=model_name)
+    else:
+        form = DynamicForm(instance=obj)
+        
+    return render(request, 'admin/dynamic_form.html', {'form': form, 'model_name': model_name, 'action': 'Edit'})
+
+@staff_member_required
+def dynamic_model_delete(request, model_name, pk):
+    if model_name not in MODEL_MAP:
+        return redirect('custom_admin_dashboard')
+    
+    model = MODEL_MAP[model_name]
+    obj = get_object_or_404(model, pk=pk)
+    obj.delete()
+    messages.success(request, f"Record deleted successfully!")
+    return redirect('dynamic_model_list', model_name=model_name)
+ 
+
+@staff_member_required
+def custom_super_admin_dashboard(request):
+    dashboard_data = {
+        name: model.objects.count() for name, model in MODEL_MAP.items()
+    }
+    return render(request, 'admin/custom_dashboard.html', {'counts': dashboard_data})
+
+
 
 def password_reset_request(request):
     if request.method == "POST":
