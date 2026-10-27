@@ -189,7 +189,7 @@
 <div class="home-container">
     
     <!-- SECTION 1: DISCOVERY (Existing Posts) -->
-    <h2 style="font-size: 2.0rem; font-weight: 600; margin: 0 0 25px 0;">Discovery</h2>
+    <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 15px 0;">Discovery</h2>
 
     <div class="news-grid">
         {% for post in posts %}
@@ -215,11 +215,11 @@
                 </div>
             </div>
         </div>
-        {% empty %}
+        <!-- {% empty %}
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 0;">
             <p style="color: var(--text-muted);">No local stories found.</p>
         </div>
-        {% endfor %}
+        {% endfor %} -->
     </div>
 
 
@@ -253,6 +253,44 @@
         {% empty %}
         <div style="grid-column: 1 / -1; text-align: center; padding: 40px 0;">
             <p style="color: var(--text-muted);">No external news available at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- SECTION 3: INDIA LATEST NEWS -->
+    <h2 style="font-size: 2.0rem; font-weight: 600; margin: 50px 0 25px 0;">India Latest News</h2>
+
+    <div class="news-grid">
+        {% for article in india_news %}
+        <div class="news-card">
+            <div class="img-container">
+                <!-- Uses article.source instead of article.publisher.title -->
+                <span class="category-badge">{{ article.source|default:"News" }}</span>
+                
+                <!-- Uses article.image_url instead of article.image -->
+                {% if article.image_url %}
+                    <img src="{{ article.image_url }}" alt="{{ article.title }}">
+                {% else %}
+                    <div style="width: 100%; height: 100%; background: var(--border-color); display: flex; align-items: center; justify-content: center;">
+                        <small style="color: var(--text-muted);">No Image</small>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="card-content">
+                <h3>{{ article.title }}</h3>
+                <p>{{ article.description|default:"No description available."|truncatewords:18 }}</p>
+                
+                <div class="card-footer">
+                    <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="read-btn">Full Story →</a>
+                    <!-- Uses article.published_at instead of article.published_date -->
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">{{ article.published_at|slice:":16" }}</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px 0;">
+            <p style="color: var(--text-muted);">No India news available at the moment.</p>
         </div>
         {% endfor %}
     </div>

@@ -32,6 +32,7 @@ from django.core.cache import cache
 from django.contrib.auth.views import PasswordResetDoneView 
 
 GNEWS_CACHE_KEY = 'gnews_top_headlines'
+INEWS_CACHE_KEY='inews_top_headlines'
 GNEWS_CACHE_TIMEOUT = 60 * 15
 
 def password_reset_request(request):
@@ -372,9 +373,28 @@ def home(request):
     except requests.RequestException as e:
       print(f'Error fetching news: {e}')
       articles = []
+  indian_articles = cache.get(INEWS_CACHE_KEY)
+  if indian_articles is None:
+    print("Cache miss: Fetching fresh data from INews API")
+    api_key = settings.NEWS_API_KEY
+    url = f'https://newsdata.io/api/1/news?apikey={api_key}&country=in&language=en'
+
+    try:
+      response = requests.get(url, timeout=5)
+      if response.status_code == 200:
+        data = response.json()
+        indian_articles = data.get('articles', [])
+ 
+        cache.set(INEWS_CACHE_KEY, indian_articles, 900)
+      else:
+        print(f'INews API Error: {response.status_code} {response.text}')
+        indian_articles = []
+    except requests.RequestException as e:
+      print(f'Error fetching news: {e}')
+      indian_articles = []
 
   # 4. Serve response
-  context = {'posts': posts, 'videos': videos, 'api_news': articles}
+  context = {'posts': posts, 'videos': videos, 'api_news': articles,'india_news':indian_articles}
 
   return render(request, 'home.html', context)
 # def home(request):

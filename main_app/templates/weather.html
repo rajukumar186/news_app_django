@@ -31,6 +31,10 @@
         overflow-x: hidden;
     }
 
+    .container > main {
+        min-width: 0;
+    }
+
     /* --- Search Section --- */
     .search-row {
         margin-bottom: 20px;
@@ -46,7 +50,7 @@
         border-radius: 16px;
         padding: 5px;
         width: 100%;
-        max-width: 500px;
+        /* max-width: 500px; */
         box-shadow: 0 4px 15px var(--shadow);
     }
 
@@ -161,7 +165,6 @@
         margin-top: 20px;
         width: 100%;
         min-width: 0;
-        overflow: hidden;
     }
 
     .sidebar-title {
@@ -176,12 +179,26 @@
         gap: 12px;
         overflow-x: auto;
         overflow-y: hidden;
+        overscroll-behavior-x: contain;
         padding: 6px 4px 16px 4px;
         scrollbar-width: thin;
         -webkit-overflow-scrolling: touch; /* Crucial for smooth momentum scrolling on iOS */
         scroll-snap-type: x mandatory;
         width: 100%;
         max-width: 100%;
+    }
+
+    .forecast-slider:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+    }
+
+    .forecast-hint {
+        display: none;
+    }
+
+    .forecast-controls {
+        display: none;
     }
 
     .forecast-slider::-webkit-scrollbar {
@@ -223,6 +240,37 @@
     @media (max-width: 480px) {
         .weather-dashboard {
             padding: 8px;
+        }
+
+        .forecast-hint {
+            display: block;
+            margin: -4px 0 8px;
+            color: var(--text-muted, #aaa);
+            font-size: 0.8rem;
+        }
+
+        .forecast-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .forecast-controls button {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-size: 1.25rem;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+
+        .forecast-controls button:disabled {
+            opacity: 0.45;
+            cursor: default;
         }
 
         .weather-search-bar {
@@ -323,7 +371,12 @@
     <!-- 7-Day Forecast Dynamic Slider -->
     <div class="forecast-section">
         <h3 class="sidebar-title">7-Day Forecast</h3>
-        <div class="forecast-slider">
+        <p class="forecast-hint">Swipe or tap an arrow to see all 7 days</p>
+        <div class="forecast-controls" role="group" aria-label="Forecast controls">
+            <button type="button" class="forecast-previous" aria-label="Previous forecast days" disabled>&larr;</button>
+            <button type="button" class="forecast-next" aria-label="Next forecast days">&rarr;</button>
+        </div>
+        <div class="forecast-slider" role="region" aria-label="7-day weather forecast" tabindex="0">
             {% for day in weather_table %}
                 <div class="day-card">
                     <h4>{{ day.date }}</h4>
@@ -337,4 +390,28 @@
         </div>
     </div>
 </div>
+<script>
+    const forecastSlider = document.querySelector('.forecast-slider');
+    const forecastPrevious = document.querySelector('.forecast-previous');
+    const forecastNext = document.querySelector('.forecast-next');
+
+    if (forecastSlider && forecastPrevious && forecastNext) {
+        const updateForecastControls = () => {
+            const maxScroll = forecastSlider.scrollWidth - forecastSlider.clientWidth;
+            const startOffset = parseFloat(getComputedStyle(forecastSlider).paddingLeft) || 0;
+            forecastPrevious.disabled = forecastSlider.scrollLeft <= startOffset + 1;
+            forecastNext.disabled = forecastSlider.scrollLeft >= maxScroll - 1;
+        };
+
+        forecastPrevious.addEventListener('click', () => {
+            forecastSlider.scrollBy({ left: -forecastSlider.clientWidth * 0.8, behavior: 'smooth' });
+        });
+        forecastNext.addEventListener('click', () => {
+            forecastSlider.scrollBy({ left: forecastSlider.clientWidth * 0.8, behavior: 'smooth' });
+        });
+        forecastSlider.addEventListener('scroll', updateForecastControls, { passive: true });
+        window.addEventListener('resize', updateForecastControls);
+        updateForecastControls();
+    }
+</script>
 {% endblock %}
