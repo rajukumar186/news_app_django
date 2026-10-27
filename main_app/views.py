@@ -30,6 +30,7 @@ from django.contrib.auth.views import PasswordResetConfirmView
 from django.urls import reverse_lazy
 from django.core.cache import cache
 from django.contrib.auth.views import PasswordResetDoneView 
+import yfinance as yf
 
 GNEWS_CACHE_KEY = 'gnews_top_headlines'
 INEWS_CACHE_KEY='inews_top_headlines'
@@ -410,21 +411,7 @@ def home(request):
   context = {'posts': posts, 'videos': videos, 'api_news': articles,'india_news':indian_articles}
 
   return render(request, 'home.html', context)
-# def home(request):
-#     posts = NewsPost.objects.all().order_by('-created_at')
-#     videos = VideoPost.objects.all().order_by('-uploaded_at')
-#     google_news = GNews(language='en', country='IN', period='7d', max_results=100)
-    
-#     # 2. Fetch the news (returns a list of dictionaries)
-#     trending_news = google_news.get_top_news()
-#     context = {
-#         'posts': posts,
-#         'videos': videos,
-#         'api_news': trending_news
-#     }
-    
-   
-#     return render(request, 'home.html', context)
+ 
 
 def log_view(request):
     # Fetch the last 50 visits, newest first
@@ -465,11 +452,7 @@ def get_trending_news(request):
     pass
      
 
-
-def homett(request):
-    # Your logic goes here
-    return render(request, 'home.html')
-
+ 
 def get_stock_data(request):
     
     data = []
@@ -485,18 +468,202 @@ def get_stock_data(request):
     return JsonResponse({'stocks': data})
 
 def stocks(request):
-    ticker_data = [
-        {'name': 'RELIANCE', 'price': '2,985.40', 'change': 1.25},
-        {'name': 'HDFC BANK', 'price': '1,442.15', 'change': -0.40},
-        {'name': 'TCS', 'price': '4,120.00', 'change': 0.82},
-        {'name': 'INFY', 'price': '1,490.10', 'change': -1.10},
-        {'name': 'ICICI BANK', 'price': '1,085.00', 'change': 0.55},
-    ]
-    
-    context = {
-        'ticker_data': ticker_data,
+  CACHE_KEY = 'nse_market_dashboard_data'
+  cache_timeout = 300  # Cache for 5 minutes to keep it fast and protect rate limits
+
+  dashboard_data = cache.get(CACHE_KEY)
+
+  if not dashboard_data:
+    try:
+      # 1. Define target Indian stocks & market indices
+      ticker_symbols = [
+          'RELIANCE.NS',
+          'TCS.NS',
+          'INFY.NS',
+          'HDFCBANK.NS',
+          'ICICIBANK.NS',
+          'ITC.NS',
+      ]
+      index_symbols = {
+          'Nifty 50': '^NSEI',
+          'Bank Nifty': '^NSEBANK',
+          'Market VIX': '^INDIAVIX',
+      }
+
+      # 2. Fetch Ticker Watch Data
+      ticker_data = []
+      for symbol in ticker_symbols:
+        t = yf.Ticker(symbol)
+        hist = t.history(period='1d')
+        clean_name = symbol.replace('.NS', '')
+        if not hist.empty:
+          current_price = hist['Close'].iloc[-1]
+          open_price = hist['Open'].iloc[-1]
+          change_pct = (
+              ((current_price - open_price) / open_price) * 100
+              if open_price
+              else 0
+          )
+          ticker_data.append({
+              'name': clean_name,
+              'price': f'{current_price:,.2f}',
+              'change': round(change_pct, 2),
+          })
+
+      # 3. Fetch Key Indices Data
+      indices_data = []
+      for name, symbol in index_symbols.items():
+        t = yf.Ticker(symbol)
+        hist = t.history(period='1d')
+        icon = (
+            'N' if 'Nifty 50' in name else ('BN' if 'Bank' in name else 'VIX')
+        )
+        if not hist.empty:
+          current_price = hist['Close'].iloc[-1]
+          open_price = hist['Open'].iloc[-1]
+          change_pct = (
+              ((current_price - open_price) / open_price) * 100
+              if open_price
+              else 0
+          )
+          is_up = change_pct >= 0
+          sign = '+' if is_up else ''
+          indices_data.append({
+              'name': name,
+              'icon': icon,
+              'price': f'{current_price:,.2f}',
+              'change': f'{sign}{change_pct:.2f}%',
+              'is_up': is_up,
+          })
+
+      # 4. Find Top Gainer dynamically from ticker watch list
+      if ticker_data:
+        top_gainer = max(ticker_data, key=lambda x: x['change'])
+        indices_data.append({
+            'name': f"Top gainer · {top_gainer['name']}",
+            'icon': top_gainer['name'][:1],
+            'price': top_gainer['price'],
+            'change': f"+{top_gainer['change']}%",
+            'is_up': top_gainer['change'] >= 0,
+        })
+
+      # 5. Fetch Intraday Chart Data for Nifty 50 (^NSEI)
+      nifty_hist = yf.Ticker('^NSEI').history(period='1d', interval='5m')
+      if not nifty_hist.empty and len(nifty_hist) > 2:
+        min_p = nifty_hist['Close'].min()
+        max_p = nifty_hist['Close'].max()
+        price_range = max_p - min_p if max_p != min_p else 1
+
+        x_step = 900 / max(len(nifty_hist) - 1, 1)
+        points = []
+        for i, (_, row) in enumerate(nifty_hist.iterrows()):
+          x = 80 + (i * x_step)
+          # Map price to SVG Y coordinate (height range 54 to 228)
+          y = 228 - ((row['Close'] - min_p) / price_range) * 174
+          points.append((x, y))
+
+        path_d = f'M {points[0][0]} {points[0][1]}'
+        for px, py in points[1:]:
+          path_d += f' L {px:.1f} {py:.1f}'
+
+        chart_line = path_d
+        chart_area = f'{path_d} L {points[-1][0]} 228 L {points[0][0]} 228 Z'
+        last_cx, last_cy = points[-1]
+      else:
+        # Fallback SVG coordinates if intraday data is temporarily unavailable
+        chart_area = (
+            'M 80 170 C 155 174, 218 188, 262 184 S 405 146, 442 150 S 588'
+            ' 130, 622 132 S 770 92, 802 100 S 920 112, 980 104 L 980 228 L 80'
+            ' 228 Z'
+        )
+        chart_line = (
+            'M 80 170 C 155 174, 218 188, 262 184 S 405 146, 442 150 S 588'
+            ' 130, 622 132 S 770 92, 802 100 S 920 112, 980 104'
+        )
+        last_cx, last_cy = 980, 104
+
+      dashboard_data = {
+          'ticker_data': ticker_data,
+          'indices_data': indices_data,
+          'chart_area': chart_area,
+          'chart_line': chart_line,
+          'last_cx': last_cx,
+          'last_cy': last_cy,
+      }
+
+      # Cache the result to prevent hitting Yahoo Finance too frequently
+      if ticker_data and indices_data:
+        cache.set(CACHE_KEY, dashboard_data, cache_timeout)
+
+    except Exception as e:
+      print(f'Live stock fetch error: {e}')
+      dashboard_data = None
+
+  # Fallback sample data if the live API request fails or times out
+  if not dashboard_data or not dashboard_data.get('ticker_data'):
+    print("Using fallback sample data for dashboard due to API failure or timeout.")
+    dashboard_data = {
+        'ticker_data': [
+            {'name': 'Reliance', 'price': '2,985.40', 'change': 1.25},
+            {'name': 'TCS', 'price': '3,840.10', 'change': -0.45},
+            {'name': 'Infosys', 'price': '1,520.60', 'change': 0.85},
+            {'name': 'HDFC Bank', 'price': '1,450.00', 'change': -1.12},
+            {'name': 'ICICI Bank', 'price': '1,080.25', 'change': 0.40},
+            {'name': 'ITC', 'price': '435.50', 'change': 0.65},
+        ],
+        'indices_data': [
+            {
+                'name': 'Nifty 50',
+                'icon': 'N',
+                'price': '22,713.10',
+                'change': '+0.15%',
+                'is_up': True,
+            },
+            {
+                'name': 'Bank Nifty',
+                'icon': 'BN',
+                'price': '48,250.30',
+                'change': '+0.32%',
+                'is_up': True,
+            },
+            {
+                'name': 'Market VIX',
+                'icon': 'VIX',
+                'price': '12.45',
+                'change': '−2.10%',
+                'is_up': False,
+            },
+            {
+                'name': 'Top gainer · Reliance',
+                'icon': 'R',
+                'price': '2,985.40',
+                'change': '+1.25%',
+                'is_up': True,
+            },
+        ],
+        'chart_area': (
+            'M 80 170 C 155 174, 218 188, 262 184 S 405 146, 442 150 S 588'
+            ' 130, 622 132 S 770 92, 802 100 S 920 112, 980 104 L 980 228 L 80'
+            ' 228 Z'
+        ),
+        'chart_line': (
+            'M 80 170 C 155 174, 218 188, 262 184 S 405 146, 442 150 S 588'
+            ' 130, 622 132 S 770 92, 802 100 S 920 112, 980 104'
+        ),
+        'last_cx': 980,
+        'last_cy': 104,
     }
-    return render(request, 'stocks.html',context)
+
+  context = {
+      'ticker_data': dashboard_data['ticker_data'],
+      'indices_data': dashboard_data['indices_data'],
+      'chart_area': dashboard_data['chart_area'],
+      'chart_line': dashboard_data['chart_line'],
+      'last_cx': dashboard_data['last_cx'],
+      'last_cy': dashboard_data['last_cy'],
+  }
+
+  return render(request, 'stocks.html', context)
 @login_required
 def create_id_card(request):
     if request.method == 'POST':

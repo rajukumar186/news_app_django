@@ -162,12 +162,40 @@
 
         /* --- 6. LAYOUT --- */
         .container { 
+            width: calc(100% - 40px);
             max-width: 1400px; 
             margin: 20px auto; 
-            padding: 0 20px; 
+            padding: 0;
             display: grid; 
-            grid-template-columns: 1fr 320px; 
-            gap: 30px; 
+            grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+            gap: clamp(18px, 2.2vw, 30px);
+            align-items: start;
+        }
+
+        .container > main,
+        .container > aside {
+            min-width: 0;
+        }
+
+        .container.stock-page-layout {
+            display: block;
+            max-width: 1440px;
+        }
+
+        .stock-page-layout > main {
+            width: 100%;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .stock-page-layout > aside {
+            display: none;
+        }
+
+        img,
+        video,
+        iframe {
+            max-width: 100%;
         }
 
         .card {
@@ -280,7 +308,7 @@
         /* --- 8. MOBILE RESPONSIVE QUERIES --- */
         @media (max-width: 1024px) {
             .container {
-                grid-template-columns: 1fr; /* Sidebar stacks below content */
+                grid-template-columns: minmax(0, 1fr);
             }
         }
 
@@ -293,7 +321,7 @@
                 right: -100%;
                 flex-direction: column;
                 background-color: var(--header-bg);
-                width: 280px;
+                width: min(320px, 88vw);
                 height: 100vh;
                 padding: 80px 25px;
                 box-shadow: -5px 0 15px var(--shadow);
@@ -316,6 +344,38 @@
             .navbar { padding: 0.6rem 15px; }
         }
 
+        @media (max-width: 600px) {
+            .container {
+                width: calc(100% - 28px);
+                margin: 14px auto;
+            }
+
+            .navbar {
+                gap: 12px;
+                padding: 0.5rem 14px;
+            }
+
+            .navbar .logo img {
+                width: auto;
+                max-width: min(65vw, 220px);
+                height: auto !important;
+                max-height: 46px;
+                object-fit: contain;
+            }
+
+            .menu-toggle {
+                min-width: 44px;
+                min-height: 44px;
+                align-items: center;
+                justify-content: center;
+            }
+
+            footer {
+                margin-top: 36px;
+                padding: 30px 16px;
+            }
+        }
+
         {% block extra_css %}{% endblock %}
     </style>
 </head>
@@ -329,7 +389,7 @@
                 <img src="{% static 'images/logo_t2.png' %}" alt="The People's Era Logo" style="height: 50px;">  
             </a>
             
-            <button class="menu-toggle" id="mobile-menu-btn" aria-label="Toggle Navigation">
+            <button class="menu-toggle" id="mobile-menu-btn" aria-label="Toggle navigation" aria-controls="nav-menu" aria-expanded="false">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -396,14 +456,14 @@
         {% for message in messages %}
             <div class="notification-toast" style="
                 background-color: {% if message.tags == 'error' or message.tags == 'danger' %}#c53030{% elif message.tags == 'success' %}#2f855a{% else %}#2b6cb0{% endif %};
-                color: white; 
-                padding: 14px 18px; 
-                border-radius: 8px; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-                display: flex; 
-                align-items: center; 
-                justify-content: space-between; 
-                font-size: 14px; 
+                color: white;
+                padding: 14px 18px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 14px;
                 font-weight: 500;
                 animation: slideIn 0.3s ease-out;
                 border-left: 4px solid rgba(0,0,0,0.2);
@@ -413,14 +473,14 @@
             </div>
         {% endfor %}
     </div>
-    
+
     <style>
     @keyframes slideIn {
         from { transform: translateX(100%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
     }
     </style>
-    
+
     <script>
         // Auto-dismiss notifications after 5 seconds
         setTimeout(() => {
@@ -434,7 +494,7 @@
     </script>
     {% endif %}
 
-    <div class="container">
+    <div class="container {% block container_class %}{% endblock %}">
         <main>
             {% block content %}{% endblock %}
         </main>
@@ -474,7 +534,10 @@
 
     <footer>
         <p>&copy; 2026 The People's Era. All rights reserved.</p>
-          
+            
+     
+ 
+        
     </footer>
 
     <div id="google_translate_element"></div>
@@ -503,6 +566,7 @@
         // --- MOBILE MENU TOGGLE ---
         menuBtn.addEventListener('click', () => {
             navMenu.classList.toggle('active');
+            menuBtn.setAttribute('aria-expanded', String(navMenu.classList.contains('active')));
             const spans = menuBtn.querySelectorAll('span');
             // Animate hamburger to X
             if(navMenu.classList.contains('active')) {
@@ -520,6 +584,13 @@
         document.addEventListener('click', (e) => {
             if (!navMenu.contains(e.target) && !menuBtn.contains(e.target) && navMenu.classList.contains('active')) {
                 menuBtn.click();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+                menuBtn.click();
+                menuBtn.focus();
             }
         });
 
