@@ -942,7 +942,7 @@ def get_top_movers_api(request):
     }
 
     # Store in cache for 60 seconds
-    cache.set("cached_market_movers", response_data, 60)
+    cache.set("cached_market_movers", response_data, 300)
 
     return JsonResponse(response_data)
   except Exception as e:

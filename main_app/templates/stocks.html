@@ -599,7 +599,7 @@
                 }
 
                 // 2. Fetch Top Movers Live Data
-                const resMovers = await fetch('/api/market-movers/');
+                const resMovers = await fetch('/api/top-movers/');
                 if (resMovers.ok) {
                     const dataMovers = await resMovers.json();
                     if (dataMovers.status === 'success') {
