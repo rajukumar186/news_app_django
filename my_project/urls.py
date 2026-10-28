@@ -38,7 +38,7 @@ urlpatterns = [
     path('secure-portal/<str:model_name>/add/', dynamic_model_create, name='dynamic_model_create'),
     path('secure-portal/<str:model_name>/edit/<str:pk>/', dynamic_model_edit, name='dynamic_model_edit'),
     path('secure-portal/<str:model_name>/delete/<str:pk>/', dynamic_model_delete, name='dynamic_model_delete'),
-    
+
     path('', views.home, name='home'),
     path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
     path('superadmin/', views.superadmin_dashboard, name='superadmin'),
@@ -89,8 +89,8 @@ else:
 
 
  
-
- 
+handler400 = 'main_app.views.custom_bad_request_view'
+handler403 = 'main_app.views.custom_permission_denied_view'
 handler404 = 'main_app.views.custom_404_view'
 handler500 = 'main_app.views.custom_500_view'
  

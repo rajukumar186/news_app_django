@@ -808,5 +808,11 @@ def custom_500_view(request):
     """Custom 500 handler (Server Error)."""
     return render(request, '500.html', status=500)
 
+def custom_bad_request_view(request, exception=None):
+    return render(request, '400.html', status=400)
+
+def custom_permission_denied_view(request, exception=None):
+    return render(request, '403.html', status=403)
+
 def health_check(request):
     return HttpResponse("OK", status=200)
