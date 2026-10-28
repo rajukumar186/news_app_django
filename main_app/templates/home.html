@@ -339,8 +339,9 @@
     {% endif %}
 
     <!-- SECTION 1: DISCOVERY (Existing Posts) -->
+    {% if posts %}
     <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 15px 0;">Discovery</h2>
-
+    {% endif %}
     <div class="news-grid">
         {% for post in posts %}
         <div class="news-card">
@@ -371,8 +372,9 @@
 
 
     <!-- SECTION 2: GLOBAL NEWS FEED (Fetched via API endpoint / get_news) -->
-    <h2 style="font-size: 2.0rem; font-weight: 600; margin: 50px 0 25px 0;">Global News Feed</h2>
-
+    {% if posts %}
+    <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 15px 0;">Global News Feed</h2>
+    {% endif %}
     <div class="news-grid">
         {% for article in api_news %}
         <div class="news-card">
@@ -402,8 +404,9 @@
     </div>
 
     <!-- SECTION 3: INDIA LATEST NEWS -->
-    <h2 style="font-size: 2.0rem; font-weight: 600; margin: 50px 0 25px 0;">India Latest News</h2>
-
+    {% if posts %}
+    <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 15px 0;">India Latest News</h2>
+    {% endif %}
     <div class="news-grid">
         {% for article in india_news %}
         <div class="news-card">
