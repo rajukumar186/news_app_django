@@ -340,102 +340,103 @@
 
     <!-- SECTION 1: DISCOVERY (Existing Posts) -->
     {% if posts %}
-    <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 15px 0;">Discovery</h2>
-    {% endif %}
-    <div class="news-grid">
-        {% for post in posts %}
-        <div class="news-card">
-            <div class="img-container">
-                <span class="category-badge">{{ post.category }}</span>
-                {% if post.image %}
-                    <img src="{{ post.image.url }}" alt="{{ post.title }}">
-                {% else %}
-                    <div style="width: 100%; height: 100%; background: var(--border-color); display: flex; align-items: center; justify-content: center;">
-                        <small style="color: var(--text-muted);">No Image</small>
-                    </div>
-                {% endif %}
-            </div>
+        <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 15px 0;">Discovery</h2>
+        
+        <div class="news-grid">
+            {% for post in posts %}
+            <div class="news-card">
+                <div class="img-container">
+                    <span class="category-badge">{{ post.category }}</span>
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                    {% else %}
+                        <div style="width: 100%; height: 100%; background: var(--border-color); display: flex; align-items: center; justify-content: center;">
+                            <small style="color: var(--text-muted);">No Image</small>
+                        </div>
+                    {% endif %}
+                </div>
 
-            <div class="card-content">
-                <h3>{{ post.title }}</h3>
-                <p>{{ post.content|truncatewords:18 }}</p>
-                
-                <div class="card-footer">
-                    <a href="{% url 'news_detail' post.slug %}" class="read-btn">Full Story →</a>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">{{ post.created_at|date:"M d" }}</span>
+                <div class="card-content">
+                    <h3>{{ post.title }}</h3>
+                    <p>{{ post.content|truncatewords:18 }}</p>
+                    
+                    <div class="card-footer">
+                        <a href="{% url 'news_detail' post.slug %}" class="read-btn">Full Story →</a>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ post.created_at|date:"M d" }}</span>
+                    </div>
                 </div>
             </div>
+            {% endfor %}
+        
         </div>
-        {% endfor %}
-       
-    </div>
-
+    {% endif %}
 
     <!-- SECTION 2: GLOBAL NEWS FEED (Fetched via API endpoint / get_news) -->
     {% if api_news %}
     <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 15px 0;">Global News Feed</h2>
-    {% endif %}
-    <div class="news-grid">
-        {% for article in api_news %}
-        <div class="news-card">
-            <div class="img-container">
-                <span class="category-badge">{{ article.publisher.title|default:"News" }}</span>
-                {% if article.image %}
-                    <img src="{{ article.image }}" alt="{{ article.title }}">
-                {% else %}
-                    <div style="width: 100%; height: 100%; background: var(--border-color); display: flex; align-items: center; justify-content: center;">
-                        <small style="color: var(--text-muted);">No Image</small>
-                    </div>
-                {% endif %}
-            </div>
+    
+        <div class="news-grid">
+            {% for article in api_news %}
+            <div class="news-card">
+                <div class="img-container">
+                    <span class="category-badge">{{ article.publisher.title|default:"News" }}</span>
+                    {% if article.image %}
+                        <img src="{{ article.image }}" alt="{{ article.title }}">
+                    {% else %}
+                        <div style="width: 100%; height: 100%; background: var(--border-color); display: flex; align-items: center; justify-content: center;">
+                            <small style="color: var(--text-muted);">No Image</small>
+                        </div>
+                    {% endif %}
+                </div>
 
-            <div class="card-content">
-                <h3>{{ article.title }}</h3>
-                <p>{{ article.description|truncatewords:18 }}</p>
-                
-                <div class="card-footer">
-                    <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="read-btn">Full Story →</a>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">{{ article.published_date|slice:":16" }}</span>
+                <div class="card-content">
+                    <h3>{{ article.title }}</h3>
+                    <p>{{ article.description|truncatewords:18 }}</p>
+                    
+                    <div class="card-footer">
+                        <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="read-btn">Full Story →</a>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ article.published_date|slice:":16" }}</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        {% endfor %}
+            {% endfor %}
         
-    </div>
-
+        </div>
+    {% endif %}
     <!-- SECTION 3: INDIA LATEST NEWS -->
     {% if india_news %}
-    <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 15px 0;">India Latest News</h2>
-    {% endif %}
-    <div class="news-grid">
-        {% for article in india_news %}
-        <div class="news-card">
-            <div class="img-container">
-                <span class="category-badge">{{ article.source|default:"News" }}</span>
-                
-                {% if article.image_url %}
-                    <img src="{{ article.image_url }}" alt="{{ article.title }}">
-                {% else %}
-                    <div style="width: 100%; height: 100%; background: var(--border-color); display: flex; align-items: center; justify-content: center;">
-                        <small style="color: var(--text-muted);">No Image</small>
-                    </div>
-                {% endif %}
-            </div>
+        <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 15px 0;">India Latest News</h2>
+        
+        <div class="news-grid">
+            {% for article in india_news %}
+            <div class="news-card">
+                <div class="img-container">
+                    <span class="category-badge">{{ article.source|default:"News" }}</span>
+                    
+                    {% if article.image_url %}
+                        <img src="{{ article.image_url }}" alt="{{ article.title }}">
+                    {% else %}
+                        <div style="width: 100%; height: 100%; background: var(--border-color); display: flex; align-items: center; justify-content: center;">
+                            <small style="color: var(--text-muted);">No Image</small>
+                        </div>
+                    {% endif %}
+                </div>
 
-            <div class="card-content">
-                <h3>{{ article.title }}</h3>
-                <p>{{ article.description|default:"No description available."|truncatewords:18 }}</p>
-                
-                <div class="card-footer">
-                    <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="read-btn">Full Story →</a>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">{{ article.published_at|slice:":16" }}</span>
+                <div class="card-content">
+                    <h3>{{ article.title }}</h3>
+                    <p>{{ article.description|default:"No description available."|truncatewords:18 }}</p>
+                    
+                    <div class="card-footer">
+                        <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="read-btn">Full Story →</a>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ article.published_at|slice:":16" }}</span>
+                    </div>
                 </div>
             </div>
+            {% empty %}
+            
+            {% endfor %}
         </div>
-        {% empty %}
-         
-        {% endfor %}
-    </div>
+    {% endif %}
 
 </div>
 {% endblock %}
