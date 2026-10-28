@@ -775,6 +775,89 @@ def stocks(request):
   }
 
   return render(request, 'stocks.html', context)
+
+def stock_live_api(request):
+  """Real-time live ticker API endpoint using yfinance."""
+  try:
+    symbols_map = {
+        "RELIANCE": "RELIANCE.NS",
+        "TCS": "TCS.NS",
+        "INFY": "INFY.NS",
+        "HDFCBANK": "HDFCBANK.NS",
+        "ICICIBANK": "ICICIBANK.NS",
+        "SBIN": "SBIN.NS",
+    }
+
+    live_tickers = []
+    for name, symbol in symbols_map.items():
+      t = yf.Ticker(symbol)
+      hist = t.history(period="2d")
+      if not hist.empty:
+        current_price = hist["Close"].iloc[-1]
+        prev_close = hist["Close"].iloc[-2] if len(hist) >= 2 else current_price
+        change_pct = ((current_price - prev_close) / prev_close) * 100
+
+        live_tickers.append({
+            "name": name,
+            "price": f"{current_price:,.2f}",
+            "change": round(change_pct, 2),
+        })
+      else:
+        live_tickers.append({"name": name, "price": "0.00", "change": 0.00})
+
+    return JsonResponse({"status": "success", "ticker_data": live_tickers})
+  except Exception as e:
+    return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+
+def get_top_movers_api(request):
+  """Calculates Top Gainers & Losers dynamically from live NSE stock data."""
+  symbols = [
+      "RELIANCE.NS",
+      "TCS.NS",
+      "INFY.NS",
+      "HDFCBANK.NS",
+      "ICICIBANK.NS",
+      "SBIN.NS",
+      "BHARTIARTL.NS",
+      "ITC.NS",
+      "KOTAKBANK.NS",
+      "LT.NS",
+  ]
+
+  stocks_performance = []
+  for sym in symbols:
+    try:
+      t = yf.Ticker(sym)
+      hist = t.history(period="2d")
+      if len(hist) >= 2:
+        close_today = hist["Close"].iloc[-1]
+        close_yesterday = hist["Close"].iloc[-2]
+        change_pct = ((close_today - close_yesterday) / close_yesterday) * 100
+
+        stocks_performance.append({
+            "name": sym.replace(".NS", ""),
+            "price": f"{close_today:,.2f}",
+            "change": round(change_pct, 2),
+        })
+    except Exception:
+      continue
+
+  stocks_performance.sort(key=lambda x: x["change"], reverse=True)
+
+  top_gainers = stocks_performance[:3]
+  top_losers = stocks_performance[-3:]
+  top_losers.reverse()
+  print({
+      "status": "success",
+      "gainers": top_gainers,
+      "losers": top_losers,
+  })
+  return JsonResponse({
+      "status": "success",
+      "gainers": top_gainers,
+      "losers": top_losers,
+  })
 @login_required
 def create_id_card(request):
     if request.method == 'POST':
