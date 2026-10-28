@@ -35,6 +35,8 @@ from .models import VisitorLog, VideoPost, Promotion, ContactMessage, NewsPost, 
 from django.forms import modelform_factory
 from django.apps import apps
 from django.contrib.admin.views.decorators import staff_member_required
+from datetime import datetime, timedelta
+import pytz
 GNEWS_CACHE_KEY = 'gnews_top_headlines'
 INEWS_CACHE_KEY='inews_top_headlines'
 GNEWS_CACHE_TIMEOUT = 60 * 15
@@ -776,26 +778,102 @@ def stocks(request):
 
   return render(request, 'stocks.html', context)
 
-def stock_live_api(request):
-  """Real-time live ticker API endpoint using yfinance."""
-  try:
-    symbols_map = {
-        "RELIANCE": "RELIANCE.NS",
-        "TCS": "TCS.NS",
-        "INFY": "INFY.NS",
-        "HDFCBANK": "HDFCBANK.NS",
-        "ICICIBANK": "ICICIBANK.NS",
-        "SBIN": "SBIN.NS",
-    }
+SYMBOLS_MAP = {
+    "RELIANCE": "RELIANCE.NS",
+    "TCS": "TCS.NS",
+    "HDFCBANK": "HDFCBANK.NS",
+    "INFY": "INFY.NS",
+    "ICICIBANK": "ICICIBANK.NS",
+    "ITC": "ITC.NS",
+    "SBIN": "SBIN.NS",
+    "BHARTIARTL": "BHARTIARTL.NS",
+    "LT": "LT.NS",
+    "HINDUNILVR": "HINDUNILVR.NS",
+    "BAJFINANCE": "BAJFINANCE.NS",
+    "TATAMOTORS": "TATAMOTORS.NS",
+    "SUNPHARMA": "SUNPHARMA.NS",
+    "AXISBANK": "AXISBANK.NS",
+    "NTPC": "NTPC.NS",
+}
 
+def stocks_view(request):
+  """Renders the initial HTML page with market overview data."""
+  ticker_data = [
+      {"name": "RELIANCE", "price": "2,940.50", "change": 1.45},
+      {"name": "TCS", "price": "4,120.00", "change": -0.80},
+      {"name": "INFY", "price": "1,650.25", "change": 0.65},
+      {"name": "HDFCBANK", "price": "1,450.10", "change": 0.30},
+      {"name": "ICICIBANK", "price": "1,105.00", "change": -0.45},
+      {"name": "SBIN", "price": "780.20", "change": 1.12},
+  ]
+
+  indices_data = [
+      {"name": "Nifty 50", "icon": "NF", "price": "22,650.30", "change": "+1.2%", "is_up": True},
+      {"name": "Sensex", "icon": "BS", "price": "74,482.78", "change": "+0.9%", "is_up": True},
+      {"name": "Gold", "icon": "AU", "price": "72,150.00", "change": "-0.2%", "is_up": False},
+      {"name": "Silver", "icon": "AG", "price": "84,300.00", "change": "+1.5%", "is_up": True},
+  ]
+
+  context = {
+      "ticker_data": ticker_data,
+      "indices_data": indices_data,
+      "chart_area": "M 78 200 L 250 160 L 450 180 L 650 110 L 980 90 L 980 265 L 78 265 Z",
+      "chart_line": "M 78 200 L 250 160 L 450 180 L 650 110 L 980 90",
+      "last_cx": "980",
+      "last_cy": "90",
+  }
+  return render(request, "stocks.html", context)
+def is_nse_market_open():
+  """Checks if current time is during NSE trading hours (Mon-Fri, 9:15 AM - 3:30 PM IST)."""
+  ist = pytz.timezone("Asia/Kolkata")
+  now = datetime.now(ist)
+
+  # Weekend check (Saturday = 5, Sunday = 6)
+  if now.weekday() >= 5:
+    return False
+
+  market_open = now.replace(hour=9, minute=15, second=0, microsecond=0)
+  market_close = now.replace(hour=15, minute=30, second=0, microsecond=0)
+
+  return market_open <= now <= market_close
+
+
+def stock_live_api(request):
+  """Real-time live ticker API endpoint with caching and IST market hour checks."""
+  # 1. If market is closed, immediately return last synced data without hitting yfinance
+  if not is_nse_market_open():
+    cached_close = cache.get("last_market_close_tickers")
+    if cached_close:
+      return JsonResponse({
+          "status": "success",
+          "market": "CLOSED",
+          "ticker_data": cached_close,
+      })
+
+  # 2. If market is open, check cache (valid for 30s) to protect against rate limits
+  cached_tickers = cache.get("live_stock_tickers")
+  if cached_tickers:
+    return JsonResponse({
+        "status": "success",
+        "market": "OPEN",
+        "ticker_data": cached_tickers,
+    })
+
+  try:
     live_tickers = []
-    for name, symbol in symbols_map.items():
+    for name, symbol in SYMBOLS_MAP.items():
       t = yf.Ticker(symbol)
       hist = t.history(period="2d")
-      if not hist.empty:
-        current_price = hist["Close"].iloc[-1]
-        prev_close = hist["Close"].iloc[-2] if len(hist) >= 2 else current_price
-        change_pct = ((current_price - prev_close) / prev_close) * 100
+      if hist is not None and not hist.empty and "Close" in hist.columns:
+        current_price = float(hist["Close"].iloc[-1])
+        prev_close = (
+            float(hist["Close"].iloc[-2]) if len(hist) >= 2 else current_price
+        )
+        change_pct = (
+            ((current_price - prev_close) / prev_close) * 100
+            if prev_close > 0
+            else 0.0
+        )
 
         live_tickers.append({
             "name": name,
@@ -805,59 +883,71 @@ def stock_live_api(request):
       else:
         live_tickers.append({"name": name, "price": "0.00", "change": 0.00})
 
-    return JsonResponse({"status": "success", "ticker_data": live_tickers})
+    # Save to live cache (30s) and permanent close backup (no timeout)
+    cache.set("live_stock_tickers", live_tickers, 30)
+    cache.set("last_market_close_tickers", live_tickers, None)
+
+    return JsonResponse(
+        {"status": "success", "market": "OPEN", "ticker_data": live_tickers}
+    )
   except Exception as e:
-    return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    # Fallback to last known cache if yfinance throws an error
+    fallback = cache.get("last_market_close_tickers") or []
+    return JsonResponse(
+        {"status": "error", "message": str(e), "ticker_data": fallback},
+        status=500,
+    )
 
 
 def get_top_movers_api(request):
-  """Calculates Top Gainers & Losers dynamically from live NSE stock data."""
-  symbols = [
-      "RELIANCE.NS",
-      "TCS.NS",
-      "INFY.NS",
-      "HDFCBANK.NS",
-      "ICICIBANK.NS",
-      "SBIN.NS",
-      "BHARTIARTL.NS",
-      "ITC.NS",
-      "KOTAKBANK.NS",
-      "LT.NS",
-  ]
+  """Calculates Top Gainers & Losers with caching to prevent rate-limiting."""
+  # Check cache first (valid for 60 seconds)
+  cached_movers = cache.get("cached_market_movers")
+  if cached_movers:
+    return JsonResponse(cached_movers)
 
-  stocks_performance = []
-  for sym in symbols:
-    try:
-      t = yf.Ticker(sym)
-      hist = t.history(period="2d")
-      if len(hist) >= 2:
-        close_today = hist["Close"].iloc[-1]
-        close_yesterday = hist["Close"].iloc[-2]
-        change_pct = ((close_today - close_yesterday) / close_yesterday) * 100
+  try:
+    stocks_performance = []
+    for name, symbol in SYMBOLS_MAP.items():
+      try:
+        t = yf.Ticker(symbol)
+        hist = t.history(period="2d")
+        if hist is not None and len(hist) >= 2 and "Close" in hist.columns:
+          close_today = float(hist["Close"].iloc[-1])
+          close_yesterday = float(hist["Close"].iloc[-2])
+          change_pct = (
+              ((close_today - close_yesterday) / close_yesterday) * 100
+              if close_yesterday > 0
+              else 0.0
+          )
 
-        stocks_performance.append({
-            "name": sym.replace(".NS", ""),
-            "price": f"{close_today:,.2f}",
-            "change": round(change_pct, 2),
-        })
-    except Exception:
-      continue
+          stocks_performance.append({
+              "name": name,
+              "price": f"{close_today:,.2f}",
+              "change": round(change_pct, 2),
+          })
+      except Exception:
+        continue
 
-  stocks_performance.sort(key=lambda x: x["change"], reverse=True)
+    stocks_performance.sort(key=lambda x: x["change"], reverse=True)
 
-  top_gainers = stocks_performance[:3]
-  top_losers = stocks_performance[-3:]
-  top_losers.reverse()
-  print({
-      "status": "success",
-      "gainers": top_gainers,
-      "losers": top_losers,
-  })
-  return JsonResponse({
-      "status": "success",
-      "gainers": top_gainers,
-      "losers": top_losers,
-  })
+    top_gainers = stocks_performance[:4]
+    top_losers = stocks_performance[-4:]
+    top_losers.reverse()
+
+    response_data = {
+        "status": "success",
+        "gainers": top_gainers,
+        "losers": top_losers,
+    }
+
+    # Store in cache for 60 seconds
+    cache.set("cached_market_movers", response_data, 60)
+
+    return JsonResponse(response_data)
+  except Exception as e:
+    return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
 @login_required
 def create_id_card(request):
     if request.method == 'POST':

@@ -362,7 +362,7 @@
         </div>
         <div class="stock-market-note">
             <span class="stock-market-dot" aria-hidden="true"></span>
-            Indicative market data
+            Live market data
         </div>
     </section>
 
@@ -370,8 +370,7 @@
     <section class="stock-panel stock-ticker-panel" aria-labelledby="stock-watch-title">
         <div class="stock-panel-heading">
             <div>
-                <h2 id="stock-watch-title">Market watch</h2>
-                <p>Swipe or use the arrows to browse stocks</p>
+                <h2 id="stock-watch-title">Market watch</h2> 
             </div>
             <div class="stock-slider-controls">
                 <span class="stock-slider-status" id="stock-slider-status" aria-live="polite"></span>
@@ -431,6 +430,40 @@
         </div>
     </section>
 
+    <!-- TOP GAINERS & LOSERS SECTION -->
+    <section aria-labelledby="stock-movers-title" style="margin-top: 28px;">
+        <div class="stock-section-heading">
+            <div>
+                <h2 id="stock-movers-title">Top movers</h2>
+                <p>Today's strongest and weakest performing NSE stocks</p>
+            </div>
+        </div>
+
+        <div class="stock-index-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+            <!-- Top Gainers Card -->
+            <article class="stock-card" style="padding: 18px;">
+                <div class="stock-card-top" style="margin-bottom: 12px;">
+                    <div class="stock-name" style="color: var(--stock-green);">Top Gainers</div>
+                    <span class="stock-icon" style="background: rgba(19, 138, 99, 0.1); color: var(--stock-green);">+</span>
+                </div>
+                <div id="top-gainers-list">
+                    <p style="color: var(--stock-muted); font-size: 0.85rem;">Loading gainers...</p>
+                </div>
+            </article>
+
+            <!-- Top Losers Card -->
+            <article class="stock-card" style="padding: 18px;">
+                <div class="stock-card-top" style="margin-bottom: 12px;">
+                    <div class="stock-name" style="color: var(--stock-red);">Top Losers</div>
+                    <span class="stock-icon" style="background: rgba(211, 75, 82, 0.1); color: var(--stock-red);">-</span>
+                </div>
+                <div id="top-losers-list">
+                    <p style="color: var(--stock-muted); font-size: 0.85rem;">Loading losers...</p>
+                </div>
+            </article>
+        </div>
+    </section>
+
     <!-- INTRADAY PERFORMANCE CHART -->
     <section class="stock-panel stock-chart-card" aria-labelledby="stock-chart-title">
         <div class="stock-chart-heading">
@@ -458,7 +491,6 @@
             <text class="stock-chart-axis" x="68" y="175" text-anchor="end">22,400</text>
             <text class="stock-chart-axis" x="68" y="233" text-anchor="end">22,200</text>
             
-            <!-- Dynamic Paths from View Context -->
             <path class="stock-chart-area" d="{{ chart_area }}"></path>
             <path class="stock-chart-line" d="{{ chart_line }}"></path>
             <circle class="stock-chart-point" cx="{{ last_cx }}" cy="{{ last_cy }}" r="5"></circle>
@@ -485,58 +517,129 @@
 
         if (!viewport || !track || !previousButton || !nextButton || !status) return;
 
-        const slides = Array.from(track.querySelectorAll('.stock-ticker-item'));
-        if (slides.length === 0) {
-            previousButton.disabled = true;
-            nextButton.disabled = true;
-            return;
+        function initSlider() {
+            const slides = Array.from(track.querySelectorAll('.stock-ticker-item'));
+            if (slides.length === 0) {
+                previousButton.disabled = true;
+                nextButton.disabled = true;
+                return;
+            }
+
+            const getVisibleCount = () => {
+                const firstSlide = slides[0];
+                const gap = Number.parseFloat(getComputedStyle(track).columnGap) || 0;
+                return Math.max(1, Math.floor((viewport.clientWidth + gap) / (firstSlide.clientWidth + gap)));
+            };
+
+            const getSlideOffset = (index) => {
+                return slides[index].getBoundingClientRect().left -
+                    viewport.getBoundingClientRect().left + viewport.scrollLeft;
+            };
+
+            const updateSlider = () => {
+                const visibleCount = getVisibleCount();
+                const maxStart = Math.max(0, slides.length - visibleCount);
+                const currentStart = slides.reduce((closest, slide, index) => {
+                    return Math.abs(getSlideOffset(index) - viewport.scrollLeft) <
+                        Math.abs(getSlideOffset(closest) - viewport.scrollLeft) ? index : closest;
+                }, 0);
+                const boundedStart = Math.min(currentStart, maxStart);
+
+                previousButton.disabled = boundedStart === 0;
+                nextButton.disabled = boundedStart >= maxStart;
+                status.textContent = `${boundedStart + 1}–${Math.min(boundedStart + visibleCount, slides.length)} of ${slides.length}`;
+            };
+
+            const moveSlider = (direction) => {
+                const visibleCount = getVisibleCount();
+                const maxStart = Math.max(0, slides.length - visibleCount);
+                const currentStart = slides.reduce((closest, slide, index) => {
+                    return Math.abs(getSlideOffset(index) - viewport.scrollLeft) <
+                        Math.abs(getSlideOffset(closest) - viewport.scrollLeft) ? index : closest;
+                }, 0);
+                const nextStart = Math.max(0, Math.min(currentStart + direction, maxStart));
+
+                viewport.scrollTo({
+                    left: getSlideOffset(nextStart),
+                    behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+                });
+            };
+
+            previousButton.onclick = () => moveSlider(-1);
+            nextButton.onclick = () => moveSlider(1);
+            viewport.onscroll = updateSlider;
+            window.onresize = updateSlider;
+            updateSlider();
         }
 
-        const getVisibleCount = () => {
-            const firstSlide = slides[0];
-            const gap = Number.parseFloat(getComputedStyle(track).columnGap) || 0;
-            return Math.max(1, Math.floor((viewport.clientWidth + gap) / (firstSlide.clientWidth + gap)));
-        };
+        // --- 5-SECOND AUTO REFRESH POLLER ---
+        async function pollStockUpdates() {
+            try {
+                // 1. Fetch Ticker Live Data
+                const resLive = await fetch('/api/stock-live/');
+                if (resLive.ok) {
+                    const dataLive = await resLive.json();
+                    let html = '';
+                    dataLive.ticker_data.forEach(item => {
+                        const isUp = item.change > 0;
+                        html += `
+                            <article class="stock-ticker-item">
+                                <div class="stock-ticker-name">${item.name}</div>
+                                <div class="stock-ticker-quote">
+                                    <span>₹${item.price}</span>
+                                    <span class="stock-ticker-change ${isUp ? 'price-up' : 'price-down'}">
+                                        ${isUp ? '+' : ''}${item.change}%
+                                    </span>
+                                </div>
+                            </article>
+                        `;
+                    });
+                    track.innerHTML = html;
+                    initSlider();
+                }
 
-        const getSlideOffset = (index) => {
-            return slides[index].getBoundingClientRect().left -
-                viewport.getBoundingClientRect().left + viewport.scrollLeft;
-        };
+                // 2. Fetch Top Movers Live Data
+                const resMovers = await fetch('/api/market-movers/');
+                if (resMovers.ok) {
+                    const dataMovers = await resMovers.json();
+                    if (dataMovers.status === 'success') {
+                        let gainersHtml = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+                        dataMovers.gainers.forEach(item => {
+                            gainersHtml += `
+                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: 700;">
+                                    <span>${item.name}</span>
+                                    <div style="text-align: right;">
+                                        <span>₹${item.price}</span>
+                                        <span class="price-up" style="margin-left: 8px;">+${item.change}%</span>
+                                    </div>
+                                </div>`;
+                        });
+                        gainersHtml += '</div>';
+                        document.getElementById('top-gainers-list').innerHTML = gainersHtml;
 
-        const updateSlider = () => {
-            const visibleCount = getVisibleCount();
-            const maxStart = Math.max(0, slides.length - visibleCount);
-            const currentStart = slides.reduce((closest, slide, index) => {
-                return Math.abs(getSlideOffset(index) - viewport.scrollLeft) <
-                    Math.abs(getSlideOffset(closest) - viewport.scrollLeft) ? index : closest;
-            }, 0);
-            const boundedStart = Math.min(currentStart, maxStart);
+                        let losersHtml = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+                        dataMovers.losers.forEach(item => {
+                            losersHtml += `
+                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: 700;">
+                                    <span>${item.name}</span>
+                                    <div style="text-align: right;">
+                                        <span>₹${item.price}</span>
+                                        <span class="price-down" style="margin-left: 8px;">${item.change}%</span>
+                                    </div>
+                                </div>`;
+                        });
+                        losersHtml += '</div>';
+                        document.getElementById('top-losers-list').innerHTML = losersHtml;
+                    }
+                }
+            } catch (err) {
+                console.error("Polling error:", err);
+            }
+        }
 
-            previousButton.disabled = boundedStart === 0;
-            nextButton.disabled = boundedStart >= maxStart;
-            status.textContent = `${boundedStart + 1}–${Math.min(boundedStart + visibleCount, slides.length)} of ${slides.length}`;
-        };
-
-        const moveSlider = (direction) => {
-            const visibleCount = getVisibleCount();
-            const maxStart = Math.max(0, slides.length - visibleCount);
-            const currentStart = slides.reduce((closest, slide, index) => {
-                return Math.abs(getSlideOffset(index) - viewport.scrollLeft) <
-                    Math.abs(getSlideOffset(closest) - viewport.scrollLeft) ? index : closest;
-            }, 0);
-            const nextStart = Math.max(0, Math.min(currentStart + direction, maxStart));
-
-            viewport.scrollTo({
-                left: getSlideOffset(nextStart),
-                behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
-            });
-        };
-
-        previousButton.addEventListener('click', () => moveSlider(-1));
-        nextButton.addEventListener('click', () => moveSlider(1));
-        viewport.addEventListener('scroll', updateSlider, { passive: true });
-        window.addEventListener('resize', updateSlider);
-        updateSlider();
+        initSlider();
+        pollStockUpdates(); // Initial fetch
+        setInterval(pollStockUpdates, 30000); // 30-second interval loop
     });
 </script>
 {% endblock %}
