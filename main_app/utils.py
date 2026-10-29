@@ -21,6 +21,7 @@ from django.utils.http import urlsafe_base64_encode
 import feedparser
 from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.cache import cache
 
 def send_verification_invite(request,user):
     current_site = get_current_site(request)
@@ -83,19 +84,26 @@ def send_password_reset_email(request, user):
 
 def get_trending_news():
     # Google News RSS feed configured specifically for India (English)
-    rss_url = "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en"
+    cached_news = cache.get('india_trending_news')
     
+    if cached_news:
+        return cached_news # Instant load for users, zero extra hits to Google!
+
+    # If cache is empty or expired, fetch fresh news from Google (happens only once per hour)
+    rss_url = "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en"
     feed = feedparser.parse(rss_url)
     
     trending_items = []
-    # Grab the top 5 trending news stories in India
-    for entry in feed.entries[:5]:
+    for entry in feed.entries:
         trending_items.append({
             'title': entry.title,
             'link': entry.link,
-            'published': entry.published[:16] # Clean up the date/time display
+            'published': entry.published[:16]
         })
         
+    # Save the result in the cache for 1800 seconds (30 minutes)
+    cache.set('india_trending_news', trending_items, 1800)
+    
     return trending_items
 
  

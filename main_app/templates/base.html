@@ -284,7 +284,19 @@
         .floating-footer-item.active i {
             transform: translateY(-2px);
         }
+        @keyframes scrollUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
 
+        .news-ticker {
+            animation: scrollUp 20s linear infinite;
+        }
+
+        /* Pause animation when hovering over the news card */
+        .news-ticker:hover {
+            animation-play-state: paused;
+        }
         /* Dark mode adjustment for floating footer shadow */
         body.dark-mode .floating-footer {
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
@@ -577,18 +589,25 @@
                     Trending News
                 </h3>
                 
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    {% for news in trending_news %}
-                    <li style="margin-bottom: 15px; border-bottom: 1px solid #f9f9f9; padding-bottom: 10px;">
-                        <a href="{{ news.link }}" target="_blank" style="text-decoration: none; color: #0066cc; font-weight: 600; font-size: 14px; display: block; line-height: 1.4;">
-                            {{ news.title }}
-                        </a>
-                        <small style="color: #888; font-size: 11px;">{{ news.published }}</small>
-                    </li>
-                    {% empty %}
-                    <p style="color: #666; font-size: 14px;">Loading trending news...</p>
-                    {% endfor %}
-                </ul>
+                <!-- Outer container with fixed height and hidden overflow -->
+                <div style="height: 250px; overflow: hidden; position: relative;">
+                    <!-- Scrolling track -->
+                    <div class="news-ticker">
+                        <ul style="list-style: none; padding: 0; margin: 0;">
+                            {% for news in trending_news %}
+                            <li style="margin-bottom: 15px; border-bottom: 1px solid #f9f9f9; padding-bottom: 10px;">
+                                <a href="{{ news.link }}" target="_blank" style="text-decoration: none; color: #d1390b; font-weight: 600; font-size: 14px; display: block; line-height: 1.4;">
+                                    {{ news.title }}
+                                </a>
+                                <small style="color: #888; font-size: 11px;">{{ news.published }}</small>
+                            </li>
+                            {% empty %}
+                            <p style="color: #666; font-size: 14px;">Loading trending news...</p>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
             </div>
             {% endblock %}
 
