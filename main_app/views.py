@@ -15,8 +15,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.decorators import login_required,user_passes_test 
 from .models import Promotion, NewsPost, SiteNotice, VisitorLog,VideoPost,ContactMessage  
 from django.contrib.auth.models import User 
-from .forms import IDCardForm
-from .models import IDCard 
+from .forms import IDCardForm 
 import uuid 
 import pandas as pd
 from django.utils.http import  urlsafe_base64_decode
@@ -31,12 +30,18 @@ from django.urls import reverse_lazy
 from django.core.cache import cache
 from django.contrib.auth.views import PasswordResetDoneView 
 import yfinance as yf
-from .models import VisitorLog, VideoPost, Promotion, ContactMessage, NewsPost, IDCard, SiteNotice
+from .models import VisitorLog, VideoPost, Promotion, ContactMessage, NewsPost, IDCard, SiteNotice, AdminReplyMessage
+from django.views.decorators.http import require_POST, require_safe
 from django.forms import modelform_factory
 from django.apps import apps
 from django.contrib.admin.views.decorators import staff_member_required
 from datetime import datetime, timedelta
 import pytz
+
+
+
+
+
 GNEWS_CACHE_KEY = 'gnews_top_headlines'
 INEWS_CACHE_KEY='inews_top_headlines'
 GNEWS_CACHE_TIMEOUT = 60 * 15
@@ -52,15 +57,27 @@ MODEL_MAP = {
     'news': apps.get_model('main_app', 'NewsPost'),
     'idcards': apps.get_model('main_app', 'IDCard'),
     'sitenotices': apps.get_model('main_app', 'SiteNotice'),
+    'users': apps.get_model('auth', 'User'),
+    'groups': apps.get_model('auth', 'Group'),
 }
+
 
 @staff_member_required
 def custom_super_admin_dashboard(request):
     # Dynamically fetch counts for all models
-    dashboard_data = {
-        name: model.objects.count() for name, model in MODEL_MAP.items()
-    }
-    return render(request, 'admin/custom_dashboard.html', {'counts': dashboard_data})
+    context = {
+            'total_users': User.objects.count(),
+            'pending_promos': Promotion.objects.filter(is_active=False).count(),
+            'active_promos': Promotion.objects.filter(is_active=True).count(),
+            'recent_posts': NewsPost.objects.order_by('-created_at')[:5],
+            'all_promotions': Promotion.objects.all().order_by('-created_at'),
+            'employees' : IDCard.objects.all().order_by("-created_at"),
+            'counts' : {
+                    name: model.objects.count() for name, model in MODEL_MAP.items()
+                }
+        }
+    
+    return render(request, 'admin/custom_dashboard.html', {'context': context})
 
 @staff_member_required
 def dynamic_model_list(request, model_name):
@@ -130,12 +147,7 @@ def dynamic_model_delete(request, model_name, pk):
     return redirect('dynamic_model_list', model_name=model_name)
  
 
-@staff_member_required
-def custom_super_admin_dashboard(request):
-    dashboard_data = {
-        name: model.objects.count() for name, model in MODEL_MAP.items()
-    }
-    return render(request, 'admin/custom_dashboard.html', {'counts': dashboard_data})
+ 
 
 
 
@@ -540,18 +552,88 @@ def contact(request):
         message = request.POST.get('message')
 
         # Create and save the object in the database
-        ContactMessage.objects.create(
-            name=name,
-            email=email,
-            subject=subject,
-            message=message
-        )
-        
-        # Redirect or show a success message
-        messages.success(request, "Thank you for your query, we will be back as soon as possible.")
-        return redirect('contact')
+       
+        if not email or not message:
+             
+            messages.error( request,  'Error 400 :Email and message are required.')
+            return redirect('contact')
 
+        try:
+            ContactMessage.objects.create(
+                        name=name,
+                        email=email,
+                        subject=subject,
+                        message=message
+                    )
+            messages.success(request, "Thank you for your query, we will be back as soon as possible.")
+            return redirect('contact')
+        except Exception as e:
+            messages.error( request,  f'Error 500 :{str(e)}.')
+            return redirect('contact')
+             
     return render(request, 'contact.html')
+
+@staff_member_required
+@require_safe
+def api_admin_notifications(request):
+  queries = ContactMessage.objects.filter(is_read=False).order_by('-created_at')
+  data = [
+      {
+          'id': q.id,
+          'name': q.name,
+          'email': q.email,
+          'subject': q.subject,
+          'message': q.message,
+          'created_at': q.created_at.strftime('%b %d, %H:%M'),
+      }
+      for q in queries
+  ]
+  return JsonResponse({'status': 'success', 'notifications': data})
+
+@staff_member_required
+@require_POST
+def api_admin_send_reply(request):
+  query_id = request.POST.get('query_id')
+  recipient_email = request.POST.get('recipient_email')
+  message_body = request.POST.get('message_body')
+  subject = request.POST.get('subject', 'Response to your inquiry')
+
+  if not recipient_email or not message_body:
+    return JsonResponse(
+        {'status': 'error', 'message': 'Recipient and body are required.'},
+        status=400,
+    )
+
+  try:
+    query_obj = None
+    if query_id:
+      query_obj = ContactMessage.objects.filter(id=query_id).first()
+      if query_obj:
+        query_obj.is_read = True  # Mark notification as read/handled
+        query_obj.save()
+
+    # Save to chat/reply history log
+    AdminReplyMessage.objects.create(
+        query=query_obj,
+        recipient_email=recipient_email,
+        message_body=message_body,
+        sent_by=request.user,
+    )
+
+    # Automatically send the email to the user
+    send_mail(
+        subject=subject,
+        message=message_body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[recipient_email],
+        fail_silently=False,
+    )
+
+    return JsonResponse(
+        {'status': 'success', 'message': 'Reply emailed successfully!'}
+    )
+  except Exception as e:
+    return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 def about(request):
     # Fetch the last 50 visits, newest first
@@ -564,22 +646,7 @@ def get_trending_news(request):
     # 1. Initialize GNews
     pass
      
-
  
-def get_stock_data(request):
-    
-    data = []
-    # STOCKS = ["RELIANCE", "TCS", "INFY", "SBI", "HINDALCO"]
-    # for symbol in STOCKS:
-    #     try:
-    #         price = nse_quote_ltp(symbol)
-    #         data.append({'symbol': symbol, 'price': price})
-    #     except Exception as err:
-    #         print(err)
-    #         continue
-    # print(data) 
-    return JsonResponse({'stocks': data})
-
 def stocks(request):
   CACHE_KEY = 'nse_market_dashboard_data'
   cache_timeout = 300  # Cache for 5 minutes to keep it fast and protect rate limits
@@ -823,6 +890,7 @@ def stocks_view(request):
       "last_cy": "90",
   }
   return render(request, "stocks.html", context)
+
 def is_nse_market_open():
   """Checks if current time is during NSE trading hours (Mon-Fri, 9:15 AM - 3:30 PM IST)."""
   ist = pytz.timezone("Asia/Kolkata")
@@ -966,6 +1034,12 @@ def view_id_card(request, card_id):
 def verify_id_card(request, card_id):
     id_card = get_object_or_404(IDCard, id=card_id)
     return render(request, 'verify_result.html', {'id_card': id_card})
+
+
+
+
+
+
 
 '''############################################################################
     Error handle view

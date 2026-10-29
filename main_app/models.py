@@ -65,10 +65,24 @@ class ContactMessage(models.Model):
     email = models.EmailField()
     subject = models.CharField(max_length=50, choices=SUBJECT_CHOICES)
     message = models.TextField()
+    is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True) # Useful for tracking when it was sent
 
     def __str__(self):
-        return f"{self.name} - {self.subject}"   
+        return f"{self.name} - {self.subject}"  
+     
+class AdminReplyMessage(models.Model):
+  query = models.ForeignKey(
+      ContactMessage, on_delete=models.SET_NULL, null=True, related_name='replies'
+  )
+  recipient_email = models.EmailField()
+  message_body = models.TextField()
+  sent_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    return f'Reply to {self.recipient_email}'
+  
 class NewsPost(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)

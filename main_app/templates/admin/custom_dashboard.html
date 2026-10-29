@@ -1,29 +1,589 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard | The People's Era{% endblock %}
+{% block title %}Super Admin Dashboard | The People's Era{% endblock %}
+{% block extra_css %}
+<style>
+    /* --- Admin Layout & Header --- */
+    .admin-dashboard {
+        padding: 15px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
 
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--primary-color);
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .admin-badge {
+        background: var(--primary-color);
+        color: white;
+        padding: 6px 15px;
+        border-radius: 5px;
+        font-weight: 800;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    /* --- Stats Grid --- */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        text-align: center;
+        padding: 30px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        background: var(--card-bg);
+        border-radius: 10px;
+        box-shadow: 0 4px 6px var(--shadow);
+    }
+
+    .stat-card:hover { 
+        transform: translateY(-5px); 
+        box-shadow: 0 8px 20px var(--shadow);
+    }
+
+    .stat-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+    }
+
+    .stat-icon {
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        font-size: 1.2rem;
+        background: rgba(10, 126, 89, 0.1);
+        color: var(--primary-color);
+        box-shadow: inset 0 0 0 1px rgba(10, 126, 89, 0.08);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+    }
+
+    /* --- Responsive Table Base --- */
+    .admin-table-container {
+        width: 100%;
+        margin-top: 15px;
+        border-radius: 8px;
+        background: var(--card-bg);
+        overflow: hidden;
+    }
+
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .admin-table th {
+        text-align: left;
+        padding: 15px;
+        background: var(--bg-color);
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .admin-table td {
+        padding: 15px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        vertical-align: middle;
+    }
+
+    /* --- Status Badges --- */
+    .status-pill {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        display: inline-block;
+    }
+
+    .status-active { background: #d4edda; color: #155724; }
+    .status-pending { background: #fff3cd; color: #856404; }
+
+    /* --- Action Buttons --- */
+    .btn-action {
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--primary-color);
+        color: white;
+        transition: opacity 0.2s;
+        display: inline-block;
+        border: none;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .btn-view { background: var(--text-muted); }
+    .btn-action:hover { opacity: 0.9; color: white; }
+
+    .quick-links-group {
+        display: flex; 
+        gap: 12px; 
+        margin-top: 15px; 
+        flex-wrap: wrap;
+    }
+
+    /* --- MOBILE RESPONSIVE OVERRIDES --- */
+    @media (max-width: 768px) {
+        .admin-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .quick-links-group .btn-action {
+            width: 100%;
+        }
+
+        /* Responsive Table "Card View" */
+        .admin-table, .admin-table thead, .admin-table tbody, .admin-table th, .admin-table td, .admin-table tr {
+            display: block;
+        }
+
+        .admin-table thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+
+        .admin-table tr {
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .admin-table td {
+            border: none;
+            position: relative;
+            padding-left: 50% !important;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+
+        .admin-table td:last-child {
+            border-bottom: 0;
+            text-align: center;
+            padding-left: 15px !important;
+        }
+
+        .admin-table td:before {
+            content: attr(data-label);
+            position: absolute;
+            left: 15px;
+            width: 45%;
+            text-align: left;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .btn-action {
+            width: 100%;
+            margin-top: 5px;
+        }
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div style="display: flex; flex-direction: column; gap: 24px;">
     <!-- Header Banner -->
-    <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
-        <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">Platform Control Center</h1>
-        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Select any module below to view, add, edit, or delete records.</p>
+    <div class="admin-header">
+        <h1 style="margin:0;">Control Panel</h1>
+       <div class="admin-badge">Message
+            <button id="admin-notif-btn" type="button" style="background: none; border: none; padding: 8px 12px; cursor: pointer; font-weight: 700;">
+                🔔 <span id="notif-count" style="background: var(--stock-accent, #c0392b); color: #fff; padding: 2px 6px; border-radius: 50%; font-size: 0.7rem;">0</span>
+            </button>
+        </div>
     </div>
+    <!-- ADMIN NOTIFICATION BADGE & CHAT TRIGGER -->
+<div class="admin-top-nav-widget" style="position: relative; display: inline-block;">
+    
+
+    <!-- Dropdown / List of incoming queries -->
+    <div id="admin-notif-dropdown" style="display: none; position: absolute; right: 0; top: 45px; width: 320px; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #ccc); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 1000; padding: 12px;">
+        <h4 style="margin: 0 0 10px; font-size: 0.9rem; border-bottom: 1px solid var(--border-color, #eee); padding-bottom: 6px;">New User Queries</h4>
+        <div id="notif-list-container" style="max-height: 250px; overflow-y: auto;">
+            <p style="font-size: 0.8rem; color: #666; text-align: center;">No new notifications</p>
+        </div>
+    </div>
+</div>
+
+<!-- INTERACTIVE CHAT WINDOW MODAL -->
+<div id="admin-chat-modal" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 380px; background: var(--card-bg, #fff); border: 1px solid var(--border-color, #ccc); border-radius: 16px; box-shadow: 0 12px 36px rgba(0,0,0,0.15); z-index: 1100; overflow: hidden;">
+    <div style="background: var(--stock-accent, #c0392b); color: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+        <h3 id="chat-modal-title" style="margin: 0; font-size: 0.95rem;">Client Support Chat</h3>
+        <button type="button" id="close-chat-modal" style="background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer;">&times;</button>
+    </div>
+
+    <div style="padding: 16px;">
+        <!-- User's Original Query Context -->
+        <div id="user-query-context" style="background: #f9f9f9; padding: 10px; border-radius: 8px; font-size: 0.82rem; margin-bottom: 12px; border-left: 3px solid var(--stock-accent, #c0392b);">
+            <strong>User Message:</strong> <span id="display-query-text">Select a notification to view query.</span>
+        </div>
+
+        <form id="admin-chat-reply-form">
+            {% csrf_token %}
+            <input type="hidden" id="chat-query-id" name="query_id" value="">
+            
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">To Email</label>
+                <input type="email" id="chat-recipient-email" name="recipient_email" readonly style="width: 100%; padding: 8px; border: 1px solid var(--border-color, #ddd); border-radius: 6px; background: #f4f4f4; font-size: 0.85rem;">
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">Reply Message (Sends as Email)</label>
+                <textarea id="chat-reply-body" name="message_body" rows="4" required placeholder="Type your reply here..." style="width: 100%; padding: 8px; border: 1px solid var(--border-color, #ddd); border-radius: 6px; font-size: 0.85rem;"></textarea>
+            </div>
+
+            <button type="submit" id="send-reply-btn" style="width: 100%; background: var(--stock-green, #138a63); color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer;">
+                Send Reply & Email User
+            </button>
+            <div id="reply-status-feedback" style="margin-top: 8px; font-size: 0.8rem; text-align: center; font-weight: 700;"></div>
+        </form>
+    </div>
+</div>
+
 
     <!-- Modules Grid Cards -->
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
-        {% for name, count in counts.items %}
-        <div class="card" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow); display: flex; flex-direction: column; justify-content: space-between;">
-            <div>
-                <span style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">{{ name }}</span>
-                <p style="font-size: 2rem; font-weight: 800; margin-top: 8px; color: var(--text-main);">{{ count }}</p>
-            </div>
+        {% for name, count in context.counts.items %}
+        <!-- <div class="card" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px var(--shadow); display: flex; flex-direction: column; justify-content: space-between;"> -->
+            <div class="stat-card">
+               
+                <span class="stat-number">{{ count }}</span>
+                <span class="stat-label">{{ name }}</span>
+          
             <div style="margin-top: 24px; display: flex; gap: 10px;">
                 <a href="{% url 'dynamic_model_list' name %}" style="background-color: var(--primary-color); color: white; text-decoration: none; font-size: 0.8rem; font-weight: 600; padding: 8px 14px; border-radius: 6px; display: inline-block;">Manage</a>
                 <a href="{% url 'dynamic_model_create' name %}" style="background-color: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); text-decoration: none; font-size: 0.8rem; font-weight: 600; padding: 8px 14px; border-radius: 6px; display: inline-block;">+ Add</a>
             </div>
-        </div>
+            </div>
+        <!-- </div> -->
         {% endfor %}
+        <!-- <div class="stats-grid"> --> 
+            <div class="stat-card">
+              
+                <span class="stat-number">{{ context.active_promos }}</span>
+                <span class="stat-label">Live Promotions</span>
+                
+            </div>
+            <div class="stat-card">
+             
+                <span class="stat-number">{{ context.pending_promos }}</span>
+                <span class="stat-label" style="color: var(--primary-color);">Pending Ads</span>
+                
+            </div>
+            
+         <!-- </div> -->
     </div>
 </div>
+
+
+<div class="admin-dashboard">
+     
+    
+
+    <!-- Promotion Requests Section -->
+    <div class="card" style="padding: 20px; background: var(--card-bg); border-radius: 8px; box-shadow: 0 2px 10px var(--shadow);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">Promotion Requests</h3>
+             
+        </div>
+        
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Business Name</th>
+                        <th>Plan Type</th>
+                        <th>Submission Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for promo in context.all_promotions %}
+                    <tr>
+                        <td data-label="Business"><strong>{{ promo.business_name }}</strong></td>
+                        <td data-label="Plan">{{ promo.get_plan_display }}</td>
+                        <td data-label="Date">{{ promo.created_at|date:"M d, Y" }}</td>
+                        <td data-label="Status">
+                            {% if promo.is_active %}
+                                <span class="status-pill status-active">ACTIVE</span>
+                            {% else %}
+                                <span class="status-pill status-pending">PENDING</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Action">
+                            <a href="/admin/main_app/promotion/{{ promo.id }}/change/" class="btn-action">Review</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            No promotion requests found in the system.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Employee Directory & ID Cards Section Styled Consistently -->
+    <div class="card" style="margin-top: 30px; padding: 20px; background: var(--card-bg); border-radius: 8px; box-shadow: 0 2px 10px var(--shadow);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin: 0;">Employee Directory & ID Cards</h3>
+        </div>
+    
+        <div class="admin-table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Full Name</th>
+                        <th>Designation</th>
+                        <th>Email</th>
+                        <th style="text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in context.employees %}
+                    <tr>
+                        <td data-label="Employee ID"><strong>{{ emp.employee_id }}</strong></td>
+                        <td data-label="Full Name">{{ emp.full_name }}</td>
+                        <td data-label="Designation">{{ emp.designation }}</td>
+                        <td data-label="Email" style="color: var(--text-muted);">{{ emp.email }}</td>
+                        <td data-label="Actions" style="text-align: center;">
+                            <a href="{% url 'view_id_card' emp.id %}" 
+                               target="_blank" 
+                               class="btn-action" 
+                               style="background: var(--primary-color); display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;" 
+                               title="View ID Card">
+                                <!-- SVG Eye Icon -->
+                                <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                View ID
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            No employees found in the database.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 30px; padding: 20px; background: var(--card-bg); border-radius: 8px;">
+        <h3>System Management</h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Quick access to core Django management modules.</p>
+        <div class="quick-links-group">
+            <a href="/admin/auth/user/" class="btn-action btn-view">Manage Users</a>
+            <a href="/admin/main_app/newspost/" class="btn-action btn-view">Moderate News</a>
+            <a href="/admin/" class="btn-action">Django Core Admin</a>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
+
+{% block sidebar %}
+<div class="card" style="margin-bottom: 20px; padding: 15px; background: var(--card-bg); border-radius: 8px;">
+    <h3 class="sidebar-title">Admin Insight</h3>
+    <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+        You are currently viewing the custom dashboard. Use the <strong>Review</strong> button to approve pending business advertisements.
+    </p>
+</div>
+
+<div class="card" style="padding: 15px; background: var(--card-bg); border-radius: 8px;">
+    <h3 class="sidebar-title">Infrastructure</h3>
+    <ul style="list-style: none; font-size: 0.85rem; padding: 0; margin: 0;">
+        <li style="padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+            <span style="color: var(--text-muted);">Environment:</span> 
+            <strong style="color: #27ae60; float: right;">Production</strong>
+        </li>
+        <li style="padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+            <span style="color: var(--text-muted);">Database:</span> 
+            <strong style="float: right;">Connected</strong>
+        </li>
+        <li style="padding: 8px 0;">
+            <span style="color: var(--text-muted);">Last Sync:</span> 
+            <strong style="float: right;">Just Now</strong>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const notifBtn = document.getElementById('admin-notif-btn');
+        const notifDropdown = document.getElementById('admin-notif-dropdown');
+        const notifCount = document.getElementById('notif-count');
+        const notifListContainer = document.getElementById('notif-list-container');
+        
+        const chatModal = document.getElementById('admin-chat-modal');
+        const closeChatModal = document.getElementById('close-chat-modal');
+        const displayQueryText = document.getElementById('display-query-text');
+        const chatQueryId = document.getElementById('chat-query-id');
+        const chatRecipientEmail = document.getElementById('chat-recipient-email');
+        const replyForm = document.getElementById('admin-chat-reply-form');
+        const replyFeedback = document.getElementById('reply-status-feedback');
+
+        // Toggle Notification Dropdown
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.style.display = notifDropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        document.addEventListener('click', () => {
+            notifDropdown.style.display = 'none';
+        });
+
+        notifDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+        // Close Chat Window Modal
+        closeChatModal.addEventListener('click', () => {
+            chatModal.style.display = 'none';
+        });
+
+        // Fetch Notifications Periodically (Every 10 seconds)
+        async function fetchNotifications() {
+            try {
+                const res = await fetch('/api/admin/notifications/');
+                if (res.ok) {
+                    const data = await res.json();
+                    const queries = data.notifications;
+                    
+                    notifCount.textContent = queries.length;
+                    if (queries.length === 0) {
+                        notifListContainer.innerHTML = '<p style="font-size: 0.8rem; color: #666; text-align: center; margin: 10px 0;">No new notifications</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    queries.forEach(q => {
+                        html += `
+                            <div class="notif-item" data-id="${q.id}" data-email="${q.email}" data-message="${q.message}" style="padding: 8px; border-bottom: 1px solid var(--border-color, #eee); cursor: pointer; transition: background 150ms;">
+                                <div style="font-weight: 700; font-size: 0.82rem;">${q.name} (${q.email})</div>
+                                <div style="font-size: 0.78rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${q.message}</div>
+                                <div style="font-size: 0.68rem; color: #999; text-align: right;">${q.created_at}</div>
+                            </div>
+                        `;
+                    });
+                    notifListContainer.innerHTML = html;
+
+                    // Bind click event to each notification card
+                    document.querySelectorAll('.notif-item').forEach(item => {
+                        item.addEventListener('click', function() {
+                            const qId = this.getAttribute('data-id');
+                            const email = this.getAttribute('data-email');
+                            const msg = this.getAttribute('data-message');
+
+                            // Open chat window and pre-fill data
+                            chatQueryId.value = qId;
+                            chatRecipientEmail.value = email;
+                            displayQueryText.textContent = msg;
+                            chatModal.style.display = 'block';
+                            notifDropdown.style.display = 'none';
+                            replyFeedback.textContent = '';
+                        });
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to load notifications:", err);
+            }
+        }
+
+        // Handle Admin Reply Submission
+        replyForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('send-reply-btn');
+            submitBtn.disabled = true;
+            replyFeedback.textContent = 'Sending email...';
+            replyFeedback.style.color = '#666';
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('/api/admin/send-reply/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    replyFeedback.textContent = '✔ Sent & Emailed Successfully!';
+                    replyFeedback.style.color = '#138a63';
+                    document.getElementById('chat-reply-body').value = '';
+                    setTimeout(() => {
+                        chatModal.style.display = 'none';
+                        fetchNotifications(); // Refresh list
+                    }, 1500);
+                } else {
+                    replyFeedback.textContent = '❌ Error: ' + result.message;
+                    replyFeedback.style.color = '#d34b52';
+                }
+            } catch (err) {
+                replyFeedback.textContent = '❌ Network error.';
+                replyFeedback.style.color = '#d34b52';
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Initial fetch and poll loop
+        fetchNotifications();
+        setInterval(fetchNotifications, 10000);
+    });
+    </script>
+    {% endblock %}

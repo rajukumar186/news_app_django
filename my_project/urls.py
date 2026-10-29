@@ -33,30 +33,28 @@ from main_app.views import (
 
 
 urlpatterns = [ 
-    path('secure-portal/dashboard/', custom_super_admin_dashboard, name='custom_admin_dashboard'),
-    path('secure-portal/<str:model_name>/', dynamic_model_list, name='dynamic_model_list'),
-    path('secure-portal/<str:model_name>/add/', dynamic_model_create, name='dynamic_model_create'),
-    path('secure-portal/<str:model_name>/edit/<str:pk>/', dynamic_model_edit, name='dynamic_model_edit'),
-    path('secure-portal/<str:model_name>/delete/<str:pk>/', dynamic_model_delete, name='dynamic_model_delete'),
-
-    path('', views.home, name='home'),
+   
+    
     path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
     path('superadmin/', views.superadmin_dashboard, name='superadmin'),
     path('profile/', views.profile_view, name='profile'),
     path('promotion/', views.create_promotion, name='promotion'),
     path('news/', views.create_news, name='news'),
     path('stocks/', views.stocks_view, name='stocks'),
-    path('api/stock-live/', views.stock_live_api, name='stock_live_api'),
-    path('api/top-movers/', views.get_top_movers_api, name='get_top_movers_api'),
+    
+    path('', views.home, name='home'),
     path('contact/', views.contact, name='contact'),
     path('about/', views.about, name='about'),
     path('weather/', views.weather_view, name='weather'),
     path('fullnews/<slug:slug>/', views.news_detail, name='news_detail'),
     path('set-password/<str:uidb64>/<str:token>/', views.set_password_confirm,  name='set_password_confirm'),
     path('get_news/', views.get_trending_news, name='get_news'),
+
+    #authentication and password reset 
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('signup/', views.signup_view, name='signup'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'), 
+
     path('forgot-password/', views.password_reset_request, name='password_reset_new'),  
     path('forgot-password/done/', 
     auth_views.PasswordResetDoneView.as_view(template_name='user/password_reset_done.html'), 
@@ -67,13 +65,28 @@ urlpatterns = [
     path('password-reset-complete/',
     auth_views.PasswordResetCompleteView.as_view(template_name='user/password_reset_complete.html'),
     name='password_reset_complete'),  
+
     path('generate/', views.create_id_card, name='create_id_card'),
     path('card/<uuid:card_id>/', views.view_id_card, name='view_id_card'),
     path('verify/<uuid:card_id>/', views.verify_id_card, name='verify_id_card'), 
     path('log/', views.log_view, name='log'),
-    path('api/stocks/', views.get_stock_data, name='stock_api'),
+    
     path('health/', views.health_check, name='health_check'),
     path("admin/", admin.site.urls),
+
+    # super admin dashboard and dynamic model management
+    path('secure-portal/dashboard/', custom_super_admin_dashboard, name='custom_admin_dashboard'),
+    path('secure-portal/<str:model_name>/', dynamic_model_list, name='dynamic_model_list'),
+    path('secure-portal/<str:model_name>/add/', dynamic_model_create, name='dynamic_model_create'),
+    path('secure-portal/<str:model_name>/edit/<str:pk>/', dynamic_model_edit, name='dynamic_model_edit'),
+    path('secure-portal/<str:model_name>/delete/<str:pk>/', dynamic_model_delete, name='dynamic_model_delete'),
+
+    # API endpoints for admin notifications and replies
+    path('api/admin/notifications/',views.api_admin_notifications, name='admin_notifications',),
+    path('api/admin/send-reply/',   views.api_admin_send_reply,  name='admin_send_reply',),
+    path('api/stocks/', views.get_stock_data, name='stock_api'),
+    path('api/stock-live/', views.stock_live_api, name='stock_live_api'),
+    path('api/top-movers/', views.get_top_movers_api, name='get_top_movers_api'),
 ]
 
 if settings.DEBUG:
