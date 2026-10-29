@@ -18,7 +18,7 @@ from django.utils.html import strip_tags
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
- 
+import feedparser
 from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 
@@ -76,16 +76,26 @@ def send_password_reset_email(request, user):
         [user.email],
         html_message=html_content,
         fail_silently=False,
-    )
-
-    # email = EmailMultiAlternatives(
-    #     subject=subject,
-    #     body=text_content,
-    #     from_email=settings.DEFAULT_FROM_EMAIL,
-    #     to=[user.email],
-    # )
-    # email.attach_alternative(html_content, "text/html")
-    # email.send(fail_silently=False)
+    ) 
     return True
+
+
+
+def get_trending_news():
+    # Google News RSS feed configured specifically for India (English)
+    rss_url = "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en"
+    
+    feed = feedparser.parse(rss_url)
+    
+    trending_items = []
+    # Grab the top 5 trending news stories in India
+    for entry in feed.entries[:5]:
+        trending_items.append({
+            'title': entry.title,
+            'link': entry.link,
+            'published': entry.published[:16] # Clean up the date/time display
+        })
+        
+    return trending_items
 
  

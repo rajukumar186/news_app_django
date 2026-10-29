@@ -7,7 +7,7 @@ Created on Thu Feb 26 11:50:41 2026
 
 from .models import Promotion
 from django.conf import settings
-
+from .utils import get_trending_news
 def sidebar_promotions(request):
     # Fetch only active promotions, maybe ordered by newest first
     header_promos = Promotion.objects.filter(is_active=True, plan__in=['gold'  ])
@@ -20,6 +20,12 @@ def sidebar_promotions(request):
     }
 
 def google_analytics(request):
+    try:
+        news = get_trending_news()
+    except Exception:
+        news = []
+
     return {
-        'GA_MEASUREMENT_ID': settings.GA_MEASUREMENT_ID
+        'GA_MEASUREMENT_ID': settings.GA_MEASUREMENT_ID,
+        'trending_news': news,  # Now available globally in base.html!
     }

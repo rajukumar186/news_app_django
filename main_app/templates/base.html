@@ -573,8 +573,22 @@
         <aside>
             {% block sidebar1 %}
             <div class="card">
-                <h3 class="sidebar-title">Trending Now</h3>
-                <p style="color: var(--text-muted);">Stay tuned for live updates...</p>
+                <h3 style="margin-top: 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; color: #333;">
+                    Trending News
+                </h3>
+                
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    {% for news in trending_news %}
+                    <li style="margin-bottom: 15px; border-bottom: 1px solid #f9f9f9; padding-bottom: 10px;">
+                        <a href="{{ news.link }}" target="_blank" style="text-decoration: none; color: #0066cc; font-weight: 600; font-size: 14px; display: block; line-height: 1.4;">
+                            {{ news.title }}
+                        </a>
+                        <small style="color: #888; font-size: 11px;">{{ news.published }}</small>
+                    </li>
+                    {% empty %}
+                    <p style="color: #666; font-size: 14px;">Loading trending news...</p>
+                    {% endfor %}
+                </ul>
             </div>
             {% endblock %}
 
