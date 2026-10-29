@@ -72,6 +72,7 @@ def custom_super_admin_dashboard(request):
             'recent_posts': NewsPost.objects.order_by('-created_at')[:5],
             'all_promotions': Promotion.objects.all().order_by('-created_at'),
             'employees' : IDCard.objects.all().order_by("-created_at"),
+            'unique_visitors': MODEL_MAP['visitors'].values('ip_address').distinct().count(),
             'counts' : {
                     name: model.objects.count() for name, model in MODEL_MAP.items()
                 }
