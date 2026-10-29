@@ -41,7 +41,7 @@ urlpatterns = [
     path('promotion/', views.create_promotion, name='promotion'),
     path('news/', views.create_news, name='news'),
     path('stocks/', views.stocks_view, name='stocks'),
-    
+
     path('', views.home, name='home'),
     path('contact/', views.contact, name='contact'),
     path('about/', views.about, name='about'),
@@ -84,7 +84,7 @@ urlpatterns = [
     # API endpoints for admin notifications and replies
     path('api/admin/notifications/',views.api_admin_notifications, name='admin_notifications',),
     path('api/admin/send-reply/',   views.api_admin_send_reply,  name='admin_send_reply',),
-    path('api/stocks/', views.get_stock_data, name='stock_api'),
+ 
     path('api/stock-live/', views.stock_live_api, name='stock_live_api'),
     path('api/top-movers/', views.get_top_movers_api, name='get_top_movers_api'),
 ]
