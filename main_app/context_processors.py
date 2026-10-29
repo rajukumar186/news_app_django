@@ -7,6 +7,7 @@ Created on Thu Feb 26 11:50:41 2026
 
 from .models import Promotion
 from django.conf import settings
+
 def sidebar_promotions(request):
     # Fetch only active promotions, maybe ordered by newest first
     header_promos = Promotion.objects.filter(is_active=True, plan__in=['gold'  ])
