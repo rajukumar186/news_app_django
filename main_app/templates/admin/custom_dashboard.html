@@ -3,11 +3,16 @@
 {% block title %}Super Admin Dashboard | The People's Era{% endblock %}
 {% block extra_css %}
 <style>
+    * {
+        box-sizing: border-box;
+    }
+
     /* --- Admin Layout & Header --- */
     .admin-dashboard {
         padding: 15px;
         max-width: 1200px;
         margin: 0 auto;
+        width: 100%;
     }
 
     .admin-header {
@@ -19,6 +24,11 @@
         border-bottom: 2px solid var(--primary-color);
         flex-wrap: wrap;
         gap: 15px;
+    }
+
+    .admin-header h1 {
+        font-size: clamp(1.5rem, 2vw, 2.4rem);
+        margin: 0;
     }
 
     .admin-badge {
@@ -158,6 +168,12 @@
     }
 
     /* --- MOBILE RESPONSIVE OVERRIDES --- */
+    @media (max-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+    }
+
     @media (max-width: 768px) {
         .admin-header {
             flex-direction: column;
@@ -170,6 +186,16 @@
 
         .quick-links-group .btn-action {
             width: 100%;
+        }
+
+        .admin-top-nav-widget {
+            width: 100%;
+        }
+
+        #admin-notif-dropdown {
+            width: min(320px, calc(100vw - 24px)) !important;
+            right: 0 !important;
+            left: auto !important;
         }
 
         /* Responsive Table "Card View" */
@@ -196,6 +222,7 @@
             padding-left: 50% !important;
             text-align: right;
             border-bottom: 1px solid #eee;
+            word-break: break-word;
         }
 
         .admin-table td:last-child {
@@ -219,6 +246,40 @@
         .btn-action {
             width: 100%;
             margin-top: 5px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .admin-dashboard {
+            padding: 10px;
+        }
+
+        .stat-card {
+            padding: 20px 15px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            justify-content: center;
+            min-width: 90px;
+        }
+
+        #admin-chat-modal {
+            width: calc(100vw - 20px) !important;
+            right: 10px !important;
+            left: 10px !important;
+            bottom: 10px !important;
+        }
+
+        .admin-badge {
+            width: 100%;
+            display: inline-flex;
+            justify-content: space-between;
+            align-items: center;
         }
     }
 </style>

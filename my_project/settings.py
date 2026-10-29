@@ -33,7 +33,7 @@ LOGOUT_REDIRECT_URL = '/'
 
 # If they try to access a protected page without logging in, send them here:
 LOGIN_URL = 'login'
-site_url = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
+
 # Application definition
 
 # settings.py
@@ -45,11 +45,13 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 3. Replace hardcoded values with os.getenv()
-SECRET_KEY = os.getenv('SECRET_KEY')
-NEWS_API_KEY = os.getenv('NEWS_API_KEY')
-GNEWS_API_KEY = os.getenv('GNEWS_API_KEY')
-DEBUG = os.getenv('DEBUG') == 'True'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+SECRET_KEY        = os.getenv('SECRET_KEY')
+NEWS_API_KEY      = os.getenv('NEWS_API_KEY')
+GNEWS_API_KEY     = os.getenv('GNEWS_API_KEY')
+DEBUG             = os.getenv('DEBUG') == 'True'
+ALLOWED_HOSTS     = os.getenv('ALLOWED_HOSTS', '').split(',')
+GA_MEASUREMENT_ID = os.getenv('GA_MEASUREMENT_ID', '')
+site_url          = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
 
 # 4. Update Email Settings
 EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
@@ -59,8 +61,7 @@ ANYMAIL = {
 }
 
 # Set your custom domain email as the default sender
-DEFAULT_FROM_EMAIL = 'support@thepeoplesera.com'
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL') 
 EMAIL_HOST = os.getenv('EMAIL_HOST')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
@@ -130,6 +131,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 "django.contrib.messages.context_processors.messages",
                 'main_app.context_processors.sidebar_promotions',
+                'main_app.context_processors.google_analytics',
                
             ],
         },

@@ -4,6 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {% if GA_MEASUREMENT_ID %}
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_MEASUREMENT_ID }}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', '{{ GA_MEASUREMENT_ID }}');
+    </script>
+    {% endif %}
+
     <title>{% block title %}The People's Era - World News{% endblock %}</title>
     <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -435,7 +447,7 @@
             }
         }
 
-        {% block extra_css %}{% endblock %}
+        {% block extra_css % } {% endblock %}
     </style>
 </head>
 <body class="{% if request.COOKIES.theme == 'dark' %}dark-mode{% endif %}">
