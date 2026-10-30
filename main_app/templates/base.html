@@ -48,37 +48,42 @@
     
         /* --- 1. VARIABLES & THEMES --- */
         :root {
-            --primary-color: #c0392b; 
-            --bg-color: #f4f7f6;
+            --primary-color: #ef4444;
+            --primary-soft: #fff1f2;
+            --bg-color: #f8fafc;
             --header-bg: #ffffff;
             --card-bg: #ffffff;
-            --text-main: #1a1a1a;
-            --text-muted: #5a6c7d;
-            --border-color: #e1e8ed;
-            --shadow: rgba(0,0,0,0.05);
-            --nav-text: #1a1a1a;
+            --text-main: #111827;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: rgba(15, 23, 42, 0.08);
+            --nav-text: #0f172a;
         }
 
         body.dark-mode {
-            --bg-color: #121212;
-            --header-bg: #1a1a1a;
-            --card-bg: #1e1e1e;
-            --text-main: #e0e0e0;
-            --text-muted: #a0aec0;
-            --border-color: #333;
-            --shadow: rgba(0,0,0,0.4);
-            --nav-text: #e0e0e0;
+            --bg-color: #0f172a;
+            --header-bg: #111827;
+            --card-bg: #1f2937;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --border-color: #334155;
+            --shadow: rgba(0, 0, 0, 0.35);
+            --nav-text: #f8fafc;
         }
 
         /* --- 2. RESET & BASE STYLES --- */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         
-        body { 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
+        body {
+            background: linear-gradient(180deg, #fdfefe 0%, var(--bg-color) 100%);
+            color: var(--text-main);
             line-height: 1.6;
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.3s, color 0.3s, background 0.3s ease;
             overflow-x: hidden;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(180deg, #0b1120 0%, var(--bg-color) 100%);
         }
 
         /* --- 3. GOOGLE TRANSLATE HACKS --- */
@@ -211,12 +216,17 @@
         }
 
         .card {
-            background: var(--card-bg);
+            background: rgba(255, 255, 255, 0.9);
             padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px var(--shadow);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px var(--shadow);
             border: 1px solid var(--border-color);
             margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        body.dark-mode .card {
+            background: rgba(31, 41, 55, 0.9);
         }
 
         .sidebar-title {
@@ -585,7 +595,7 @@
         <aside>
             {% block sidebar1 %}
             <div class="card">
-                <h3 style="margin-top: 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; color: #333;">
+                <h3  >
                     Trending News
                 </h3>
                 

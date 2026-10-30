@@ -1,4 +1,5 @@
 
+from functools import wraps
 from django.shortcuts import render,redirect,get_object_or_404
 import requests 
 from django.http import JsonResponse
@@ -45,10 +46,7 @@ import pytz
 GNEWS_CACHE_KEY = 'gnews_top_headlines'
 INEWS_CACHE_KEY='inews_top_headlines'
 GNEWS_CACHE_TIMEOUT = 60 * 15
-
-
-
-
+ 
 MODEL_MAP = {
     'visitors': apps.get_model('main_app', 'VisitorLog'),
     'videos': apps.get_model('main_app', 'VideoPost'),
@@ -62,7 +60,18 @@ MODEL_MAP = {
 }
 
 
-@staff_member_required
+def superuser_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs): 
+        if not request.user.is_active or not request.user.is_superuser:
+            return render(request, '403.html', status=403)
+
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped_view
+
+
+@superuser_required
 def custom_super_admin_dashboard(request):
     # Dynamically fetch counts for all models
     context = {
@@ -80,7 +89,7 @@ def custom_super_admin_dashboard(request):
     
     return render(request, 'admin/custom_dashboard.html', {'context': context})
 
-@staff_member_required
+@superuser_required
 def dynamic_model_list(request, model_name):
     if model_name not in MODEL_MAP:
         return redirect('custom_admin_dashboard')
@@ -97,7 +106,7 @@ def dynamic_model_list(request, model_name):
     }
     return render(request, 'admin/dynamic_list.html', context)
 
-@staff_member_required
+@superuser_required
 def dynamic_model_create(request, model_name):
     if model_name not in MODEL_MAP:
         return redirect('custom_admin_dashboard')
@@ -116,7 +125,7 @@ def dynamic_model_create(request, model_name):
         
     return render(request, 'admin/dynamic_form.html', {'form': form, 'model_name': model_name, 'action': 'Create'})
 
-@staff_member_required
+@superuser_required
 def dynamic_model_edit(request, model_name, pk):
     if model_name not in MODEL_MAP:
         return redirect('custom_admin_dashboard')
@@ -136,7 +145,7 @@ def dynamic_model_edit(request, model_name, pk):
         
     return render(request, 'admin/dynamic_form.html', {'form': form, 'model_name': model_name, 'action': 'Edit'})
 
-@staff_member_required
+@superuser_required
 def dynamic_model_delete(request, model_name, pk):
     if model_name not in MODEL_MAP:
         return redirect('custom_admin_dashboard')
@@ -147,11 +156,8 @@ def dynamic_model_delete(request, model_name, pk):
     messages.success(request, f"Record deleted successfully!")
     return redirect('dynamic_model_list', model_name=model_name)
  
-
  
-
-
-
+  
 def password_reset_request(request):
     if request.method == "POST":
         email = request.POST.get('email')
@@ -283,6 +289,7 @@ def news_detail(request, slug):
     # This finds the post or returns a 404 error if it doesn't exist
     post = get_object_or_404(NewsPost, slug=slug)
     return render(request, 'full_artical.html', {'post': post})
+
 @login_required
 def create_news(request):
     # Optional: Restrict to staff or specific users
@@ -362,6 +369,8 @@ def superadmin_dashboard(request):
 
 @login_required
 def profile_view(request):
+    user_card = IDCard.objects.filter(user=request.user).order_by('-created_at').first()
+
     if request.method == 'POST':
         form = VideoUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -386,7 +395,11 @@ def profile_view(request):
             return redirect('home')
     else:
         form = VideoUploadForm()
-        return render(request, 'profile.html', {'form': form})
+
+    return render(request, 'profile.html', {
+        'form': form,
+        'user_card': user_card,
+    })
     
 def get_client_ip(request):
     """Helper to extract the visitor's real IP address."""
@@ -411,6 +424,7 @@ def get_city_from_ip(ip_address):
         pass
     
     return "Delhi"
+
 def weather_view(request):
     # Get the city name from request parameters, defaulting to "Delhi"
     city_name = None
@@ -568,15 +582,11 @@ def home(request):
 
   return render(request, 'home.html', context)
  
-
-def log_view(request):
-    # Fetch the last 50 visits, newest first
-    logs = VisitorLog.objects.all().order_by('-timestamp') 
-    
-     
-
+@superuser_required
+def log_view(request): 
+    logs = VisitorLog.objects.all().order_by('-timestamp')  
     context = {
-        'logs': logs, # Passed to template for client-side search & pagination
+        'logs': logs,  
     }
     return render(request, 'log.html', context)
 
@@ -610,9 +620,14 @@ def contact(request):
              
     return render(request, 'contact.html')
 
-@staff_member_required
 @require_safe
 def api_admin_notifications(request):
+  if not request.user.is_authenticated:
+    return JsonResponse({'status': 'error', 'message': 'Authentication required.'}, status=401)
+
+  if not request.user.is_active or not request.user.is_superuser:
+    return JsonResponse({'status': 'error', 'message': 'Access denied. Superuser access required.'}, status=403)
+
   queries = ContactMessage.objects.filter(is_read=False).order_by('-created_at')
   data = [
       {
@@ -627,9 +642,14 @@ def api_admin_notifications(request):
   ]
   return JsonResponse({'status': 'success', 'notifications': data})
 
-@staff_member_required
 @require_POST
 def api_admin_send_reply(request):
+  if not request.user.is_authenticated:
+    return JsonResponse({'status': 'error', 'message': 'Authentication required.'}, status=401)
+
+  if not request.user.is_active or not request.user.is_superuser:
+    return JsonResponse({'status': 'error', 'message': 'Access denied. Superuser access required.'}, status=403)
+
   query_id = request.POST.get('query_id')
   recipient_email = request.POST.get('recipient_email')
   message_body = request.POST.get('message_body')
@@ -672,9 +692,7 @@ def api_admin_send_reply(request):
   except Exception as e:
     return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-def about(request):
-    # Fetch the last 50 visits, newest first
-     
+def about(request): 
     return render(request, 'about.html' )
 
  
@@ -1055,28 +1073,56 @@ def get_top_movers_api(request):
 
 @login_required
 def create_id_card(request):
+    existing_card = IDCard.objects.filter(user=request.user).order_by('-created_at').first()
+    if existing_card and existing_card.is_approved:
+        return redirect('view_id_card', card_id=existing_card.id)
+
     if request.method == 'POST':
         form = IDCardForm(request.POST, request.FILES)
         if form.is_valid():
-            id_card = form.save()
+            id_card = form.save(commit=False)
+            id_card.user = request.user
+            id_card.email = request.user.email or form.cleaned_data.get('email')
+            id_card.save()
             return redirect('view_id_card', card_id=id_card.id)
     else:
-        form = IDCardForm()
+        form = IDCardForm(initial={'email': request.user.email})
     return render(request, 'create_form.html', {'form': form})
+
+@superuser_required
+@require_POST
+def approve_id_card(request, card_id):
+    id_card = get_object_or_404(IDCard, id=card_id)
+    id_card.is_approved = True
+    id_card.save()
+    messages.success(request, f"ID card for {id_card.full_name} has been approved.")
+    return redirect('custom_admin_dashboard')
+
+@superuser_required
+@require_POST
+def reject_id_card(request, card_id):
+    id_card = get_object_or_404(IDCard, id=card_id)
+    id_card.is_approved = False
+    id_card.save()
+    messages.warning(request, f"ID card for {id_card.full_name} has been marked as rejected.")
+    return redirect('custom_admin_dashboard')
+
 @login_required
 def view_id_card(request, card_id):
     id_card = get_object_or_404(IDCard, id=card_id)
+
+    if not request.user.is_superuser and id_card.user != request.user:
+        return render(request, '403.html', status=403)
+
+    if not id_card.is_approved and not request.user.is_superuser:
+        return render(request, '403.html', status=403)
+
     return render(request, 'id_card_template.html', {'id_card': id_card})
 
 def verify_id_card(request, card_id):
     id_card = get_object_or_404(IDCard, id=card_id)
     return render(request, 'verify_result.html', {'id_card': id_card})
-
-
-
-
-
-
+ 
 
 '''############################################################################
     Error handle view

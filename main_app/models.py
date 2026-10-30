@@ -107,6 +107,8 @@ class NewsPost(models.Model):
 class IDCard(models.Model):
   # Unique UUID primary key
   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+  user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='id_cards')
+  is_approved = models.BooleanField(default=False)
 
   # Auto-generated serial employee ID (e.g., TPE-2026-000)
   employee_id = models.CharField(max_length=50, unique=True, blank=True)

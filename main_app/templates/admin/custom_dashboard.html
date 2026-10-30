@@ -461,18 +461,31 @@
                         <td data-label="Designation">{{ emp.designation }}</td>
                         <td data-label="Email" style="color: var(--text-muted);">{{ emp.email }}</td>
                         <td data-label="Actions" style="text-align: center;">
-                            <a href="{% url 'view_id_card' emp.id %}" 
-                               target="_blank" 
-                               class="btn-action" 
-                               style="background: var(--primary-color); display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;" 
-                               title="View ID Card">
-                                <!-- SVG Eye Icon -->
-                                <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                                View ID
-                            </a>
+                            <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                                <a href="{% url 'view_id_card' emp.id %}" 
+                                   target="_blank" 
+                                   class="btn-action" 
+                                   style="background: var(--primary-color); display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;" 
+                                   title="View ID Card">
+                                    <svg xmlns="http://www.w3.org/2000/svg" style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    View ID
+                                </a>
+
+                                {% if emp.is_approved %}
+                                    <form method="post" action="{% url 'reject_id_card' emp.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-action" style="background: #dc2626; padding: 6px 12px;">Reject</button>
+                                    </form>
+                                {% else %}
+                                    <form method="post" action="{% url 'approve_id_card' emp.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-action" style="background: #16a34a; padding: 6px 12px;">Approve</button>
+                                    </form>
+                                {% endif %}
+                            </div>
                         </td>
                     </tr>
                     {% empty %}

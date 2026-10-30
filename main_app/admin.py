@@ -98,9 +98,10 @@ class VideoPostAdmin(admin.ModelAdmin):
     
 @admin.register(IDCard)
 class IDCardAdmin(admin.ModelAdmin):
-    list_display = ('employee_id', 'full_name', 'designation', 'email', 'created_at')
+    list_display = ('employee_id', 'full_name', 'designation', 'email', 'is_approved', 'created_at')
     search_fields = ('full_name', 'employee_id', 'email', 'designation')
-    list_filter = ('designation', 'created_at')
+    list_filter = ('designation', 'is_approved', 'created_at')
+    list_editable = ('is_approved',)
     readonly_fields = ('id', 'qr_code', 'created_at')
 
 

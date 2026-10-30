@@ -166,12 +166,21 @@
                 </div>
             </div>
 
-            <a href="/generate" style="color: var(--primary-color); text-decoration: none; font-weight: 600; font-size: 0.9rem;">
-                Generate ID card
-            </a>
-             <a href="#" style="color: var(--primary-color); text-decoration: none; font-weight: 600; font-size: 0.9rem;">
-                 View ID card
-             </a>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
+                {% if user_card and user_card.is_approved %}
+                    <a href="{% url 'view_id_card' card_id=user_card.id %}" style="display: inline-flex; align-items: center; justify-content: center; background: var(--primary-color); color: #fff; text-decoration: none; font-weight: 700; font-size: 0.9rem; padding: 12px 16px; border-radius: 10px; box-shadow: 0 6px 16px rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                        View ID card
+                    </a>
+                {% elif user_card %}
+                    <a href="#" style="display: inline-flex; align-items: center; justify-content: center; background: #fff; color: #f59e0b; text-decoration: none; font-weight: 700; font-size: 0.9rem; padding: 12px 16px; border-radius: 10px; border: 1px solid #f59e0b; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                        Pending Approval
+                    </a>
+                {% else %}
+                    <a href="{% url 'create_id_card' %}" style="display: inline-flex; align-items: center; justify-content: center; background: var(--primary-color); color: #fff; text-decoration: none; font-weight: 700; font-size: 0.9rem; padding: 12px 16px; border-radius: 10px; box-shadow: 0 6px 16px rgba(239, 68, 68, 0.22); border: 1px solid rgba(239, 68, 68, 0.2); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                        Apply for ID card
+                    </a>
+                {% endif %}
+            </div>
         </div>
     </aside>
      {% if user.is_authenticated and user.is_superuser %}

@@ -6,6 +6,10 @@
     <h1 style="font-size: 3rem; font-weight: 800; color: var(--primary-color);">403</h1>
     <h2 style="font-size: 1.5rem; margin-top: 10px; color: var(--text-main);">Access Forbidden</h2>
     <p style="color: var(--text-muted); margin: 15px 0 25px 0;">You do not have permission to view or modify this resource.</p>
-    <a href="/" style="background-color: var(--primary-color); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">Return Home</a>
+    
+    <div style="display: flex; gap: 12px; justify-content: center;">
+        <a href="/" style="background-color: var(--primary-color); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600;">Return Home</a>
+        <button onclick="history.back()" style="background-color: transparent; color: var(--text-main); border: 1px solid var(--text-muted); padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">Go Back</button>
+    </div>
 </div>
 {% endblock %}
