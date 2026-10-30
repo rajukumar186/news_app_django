@@ -72,7 +72,7 @@ def custom_super_admin_dashboard(request):
             'recent_posts': NewsPost.objects.order_by('-created_at')[:5],
             'all_promotions': Promotion.objects.all().order_by('-created_at'),
             'employees' : IDCard.objects.all().order_by("-created_at"),
-            'unique_visitors': MODEL_MAP['visitors'].values('ip_address').distinct().count(),
+            'unique_visitors': MODEL_MAP['visitors'].objects.values('ip_address').distinct().count(),
             'counts' : {
                     name: model.objects.count() for name, model in MODEL_MAP.items()
                 }
@@ -388,9 +388,45 @@ def profile_view(request):
         form = VideoUploadForm()
         return render(request, 'profile.html', {'form': form})
     
+def get_client_ip(request):
+    """Helper to extract the visitor's real IP address."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')
+
+def get_city_from_ip(ip_address):
+    """Helper to guess the user's city name based on their IP address."""
+    if ip_address in ['127.0.0.1', '::1']:
+        return "Delhi"  # Default fallback for local testing
+    
+    try:
+        response = requests.get(f"https://ipapi.co/{ip_address}/json/", timeout=3)
+        if response.status_code == 200:
+            data = response.json()
+            city = data.get('city')
+            if city:
+                return city
+    except requests.RequestException:
+        pass
+    
+    return "Delhi"
 def weather_view(request):
     # Get the city name from request parameters, defaulting to "Delhi"
-    city_name = request.GET.get("city", "Delhi")
+    city_name = None
+
+    # 1. Handle POST request (Form Submission)
+    if request.method == "POST":
+        city_name = request.POST.get("city")
+    
+    # 2. Handle GET request (URL query parameter like ?city=Paris)
+    elif request.method == "GET":
+        city_name = request.GET.get("city")
+
+    # 3. Fallback: If no city was provided via POST or GET, auto-detect from IP
+    if not city_name:
+        client_ip = get_client_ip(request)
+        city_name = get_city_from_ip(client_ip)
 
     # 1. Use Open-Meteo Geocoding API to find latitude, longitude, and actual city name
     geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city_name}&count=1"
@@ -436,9 +472,9 @@ def weather_view(request):
         dates = df["date"].tolist()
         max_temps = df["max_temp"].tolist()
         min_temps = df["min_temp"].tolist()
-        print(df)
+      
         # Get latest day's metrics
-        latest = df.iloc[-1]
+        latest = df.iloc[0]
 
         context = {
             "city": display_location,
