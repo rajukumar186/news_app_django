@@ -602,7 +602,7 @@ def log_view(request):
         'logs': logs,  
     }
     return render(request, 'log.html', context)
-@ratelimit(key='ip', rate='2/m', block=True)
+@ratelimit(key='ip', rate='5/m', method='POST', block=True)
 def contact(request):
     was_limited = getattr(request, 'limited', False)
     if was_limited:
@@ -618,9 +618,8 @@ def contact(request):
 
         if not email or not message:
             messages.error(request, 'Error 400: Email and message are required.')
-            return redirect('contact')
-
-        # --- NEW: Verify that this email passed the OTP check ---
+            return redirect('contact') 
+        
         verified_email = request.session.get('verified_contact_email')
         if verified_email != email:
             messages.error(request, 'Please verify your contact email.')
@@ -646,7 +645,7 @@ def contact(request):
              
     return render(request, 'contact.html')
 
-@ratelimit(key='ip', rate='3/m', block=True)  # Limit IP to sending OTP 3 times per minute
+@ratelimit(key='ip', rate='3/m', method='POST', block=True)  # Limit IP to sending OTP 3 times per minute
 @ratelimit(key='post:email', rate='2/h', block=True)  # Limit target email to 2 OTP requests per hour
 def ajax_send_otp(request):
     if request.method == 'POST':
