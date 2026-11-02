@@ -48,7 +48,7 @@
     
         /* --- 1. VARIABLES & THEMES --- */
         :root {
-            --primary-color: #ef4444;
+            --primary-color: #b40a0a;
             --primary-soft: #fff1f2;
             --bg-color: #f8fafc;
             --header-bg: #ffffff;
@@ -61,7 +61,7 @@
         }
 
         body.dark-mode {
-            --bg-color: #0f172a;
+            --bg-color: #07080c;
             --header-bg: #111827;
             --card-bg: #1f2937;
             --text-main: #f8fafc;
@@ -300,7 +300,7 @@
         }
 
         .news-ticker {
-            animation: scrollUp 20s linear infinite;
+            animation: scrollUp 30s linear infinite;
         }
 
         /* Pause animation when hovering over the news card */
@@ -506,9 +506,9 @@
                     </li>
                 {% else %}
                     <li><a href="/about">About </a></li>
-                    <li><a href="/contact">Contact</a></li>
-                    <li><a href="/faq">FAQ / Help</a></li>
+                    <li><a href="/contact">Contact</a></li> 
                     <li><a href="{% url 'login' %}">Login</a></li>
+                    <li><a href="/faq">FAQ </a></li>
                 {% endif %}
 
                 <li>
@@ -607,7 +607,7 @@
                         <ul style="list-style: none; padding: 0; margin: 0;">
                             {% for news in trending_news %}
                             <li style="margin-bottom: 15px; border-bottom: 1px solid #f9f9f9; padding-bottom: 10px;">
-                                <a href="{{ news.link }}" target="_blank" style="text-decoration: none; color: #d1390b; font-weight: 600; font-size: 14px; display: block; line-height: 1.4;">
+                                <a href="{{ news.link }}" target="_blank" style="text-decoration: none; color: #0b1fda; font-weight: 600; font-size: 14px; display: block; line-height: 1.4;">
                                     {{ news.title }}
                                 </a>
                                 <small style="color: #888; font-size: 11px;">{{ news.published }}</small>
@@ -638,7 +638,7 @@
                 <div class="card">
                     <h3 class="sidebar-title">Partner with us</h3>
                     <div style="height: 100px; background: var(--bg-color); border: 2px dashed var(--border-color); display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 10px;">
-                        <span style="color: var(--text-muted); font-size: 0.8rem; text-align:center;">Want to see your business here?</span>
+                        <span style="color: var(--text-muted); font-size: 0.8rem; text-align:center;">Want to see your business here? <br> 10 $ / week</span>
                     </div>
                     <a href="{% url 'promotion' %}" style="color: var(--primary-color); font-weight: bold; font-size: 0.8rem;">Create a Promotion →</a>
                 </div>

@@ -427,7 +427,7 @@ def get_city_from_ip(ip_address):
         return "Delhi"  # Default fallback for local testing
     
     try:
-        response = requests.get(f"https://ipapi.co/{ip_address}/json/", timeout=3)
+        response = requests.get(f"https://ipapi.co/{ip_address}/json/", timeout=5)
         if response.status_code == 200:
             data = response.json()
             city = data.get('city')
@@ -459,7 +459,7 @@ def weather_view(request):
     geo_url = f"https://geocoding-api.open-meteo.com/v1/search?name={city_name}&count=1"
     
     try:
-        geo_response = requests.get(geo_url)
+        geo_response = requests.get(geo_url,timeout=10)
         geo_data = geo_response.json()
 
         # Check if any location matched the search query
@@ -483,7 +483,7 @@ def weather_view(request):
             f"&timezone=auto"
         )
 
-        response = requests.get(weather_url)
+        response = requests.get(weather_url,timeout=10)
         data = response.json()
 
         # Convert to Pandas DataFrame
@@ -518,6 +518,7 @@ def weather_view(request):
         }
 
     except Exception as e:
+        print(f"Error fetching weather data: {e}")
         context = {
             "error": "Could not fetch weather data. Please check your network or city name."
         }

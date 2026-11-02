@@ -59,6 +59,44 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
+
+
+'''
+Validate critical environment variables and raise an alert if any are missing.
+This function checks for the presence of essential environment variables required for the application to run correctly.
+'''
+def validate_environment_variables():
+    """
+    Validates that all critical environment variables are present.
+    Raises a ValueError with a detailed alert message if any are missing.
+    """
+     
+    required_variables = {
+        'SECRET_KEY': SECRET_KEY,
+        'NEWS_API_KEY': NEWS_API_KEY,
+        'DEFAULT_FROM_EMAIL': DEFAULT_FROM_EMAIL,
+        'EMAIL_HOST': EMAIL_HOST,
+        'EMAIL_HOST_USER': EMAIL_HOST_USER,
+        'EMAIL_HOST_PASSWORD': EMAIL_HOST_PASSWORD
+    }
+
+    missing_keys = [key for key, value in required_variables.items() if not value]
+
+    if missing_keys:
+         
+        alert_message = (
+            "\n" + "="*60 + "\n"
+            "🚨 [CRITICAL CONFIGURATION ALERT] 🚨\n"
+            "Your application failed to start because the following required "
+            "environment variable(s) are missing from your .env file:\n\n"
+            f"   -> {', '.join(missing_keys)}\n\n"
+            "Please check your .env configuration and restart the server.\n"
+            + "="*60 + "\n"
+        )
+        raise ValueError(alert_message)
+ 
+validate_environment_variables() 
+
 # 4. Update Email Settings
 EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
 
@@ -66,11 +104,7 @@ ANYMAIL = {
     'RESEND_API_KEY': os.environ.get('RESEND_API_KEY'),
 }
 
-# Set your custom domain email as the default sender
-
-
-
-
+  
 
 INSTALLED_APPS = [
     'jazzmin',
