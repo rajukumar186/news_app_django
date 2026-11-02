@@ -161,17 +161,28 @@ def dynamic_model_delete(request, model_name, pk):
   
 def password_reset_request(request):
     if request.method == "POST":
-        email = request.POST.get('email')
-        user = User.objects.filter(email=email).first()
-        
+        email = (request.POST.get('email') or '').strip().lower()
+        client_ip = request.META.get('REMOTE_ADDR', 'unknown')
+        rate_limit_key = f"password_reset:{client_ip}:{email}"
+
+        # Rate limit only on form submission
+        if cache.get(rate_limit_key):
+            messages.error(
+                request,
+                "Too many password reset requests. Please wait 5 minutes before trying again."
+            )
+            return render(request, 'user/password_reset.html', {'email': email})
+
+        user = User.objects.filter(email__iexact=email).first()
+
         if user:
-             
+            cache.set(rate_limit_key, True, 300)  # 5 minutes
             send_password_reset_email(request, user)
-             
             return redirect("password_reset_done")
-        else:
-            messages.error(request, "No user found with this email address.")
-        
+
+        cache.set(rate_limit_key, True, 60)  # short throttle for invalid email attempts
+        messages.error(request, "No user found with this email address.")
+
     return render(request, 'user/password_reset.html')
 
 def password_reset_done(request):
@@ -657,7 +668,7 @@ def ajax_send_otp(request):
         send_mail(
             subject='Your Verification Code',
             message=f'Your verification code is: {otp_code}\n\nThis code expires in 10 minutes.',
-            from_email='noreply@yourdomain.com',
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[email],
         )
         return JsonResponse({'success': True, 'message': 'OTP sent successfully!'})

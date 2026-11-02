@@ -63,21 +63,21 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'), 
 
     path('forgot-password/', views.password_reset_request, name='password_reset_new'),  
-    # path('forgot-password/done/', 
-    # auth_views.PasswordResetDoneView.as_view(template_name='user/password_reset_done.html'), 
-    # name='password_reset_done'),
-    path(
-        'forgot-password/done//',
-        ratelimit(key='ip', rate='5/m', block=True)(
-            ratelimit(key='post:email', rate='3/h', block=True)(
-                auth_views.PasswordResetView.as_view(
-                    template_name='registration/password_reset_form.html',
-                    success_url='/password-reset/done/'
-                )
-            )
-        ),
-        name='password_reset'
-    ), 
+    path('forgot-password/done/', 
+    auth_views.PasswordResetDoneView.as_view(template_name='user/password_reset_done.html'), 
+    name='password_reset_done'),
+    # path(
+    #     'forgot-password/done//',
+    #     ratelimit(key='ip', rate='5/m', block=True)(
+    #         ratelimit(key='post:email', rate='3/h', block=True)(
+    #             auth_views.PasswordResetView.as_view(
+    #                 template_name='registration/password_reset_form.html',
+    #                 success_url='/password-reset/done/'
+    #             )
+    #         )
+    #     ),
+    #     name='password_reset'
+    # ), 
     path('reset/<uidb64>/<token>/', 
     auth_views.PasswordResetConfirmView.as_view(template_name="user/password_reset_confirm.html"), 
     name='password_reset_confirm'), 
