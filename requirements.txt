@@ -15,6 +15,7 @@ Django==6.0.2
 django-anymail==15.2
 django-ipware==7.0.1
 django-jazzmin==3.0.4
+django-ratelimit==4.1.0
 dnspython==2.8.0
 feedparser==6.0.12
 frozenlist==1.8.0
