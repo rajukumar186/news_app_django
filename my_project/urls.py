@@ -23,12 +23,16 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 from django.urls import include, path, re_path
 from django.views.static import serve
+from django_ratelimit.decorators import ratelimit
 from main_app.views import (
+    ajax_verify_otp,
+    ajax_send_otp,
     custom_super_admin_dashboard,
     dynamic_model_list,
     dynamic_model_create,
     dynamic_model_edit,
     dynamic_model_delete,
+    faq_view,
 )
 
 
@@ -44,7 +48,10 @@ urlpatterns = [
 
     path('', views.home, name='home'),
     path('contact/', views.contact, name='contact'),
+    path('contact/send-otp/', ajax_send_otp, name='ajax_send_otp'),
+    path('contact/verify-otp/', ajax_verify_otp, name='ajax_verify_otp'),
     path('about/', views.about, name='about'),
+    path('faq/', faq_view, name='faq'),
     path('weather/', views.weather_view, name='weather'),
     path('fullnews/<slug:slug>/', views.news_detail, name='news_detail'),
     path('set-password/<str:uidb64>/<str:token>/', views.set_password_confirm,  name='set_password_confirm'),
@@ -56,9 +63,21 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'), 
 
     path('forgot-password/', views.password_reset_request, name='password_reset_new'),  
-    path('forgot-password/done/', 
-    auth_views.PasswordResetDoneView.as_view(template_name='user/password_reset_done.html'), 
-    name='password_reset_done'),  
+    # path('forgot-password/done/', 
+    # auth_views.PasswordResetDoneView.as_view(template_name='user/password_reset_done.html'), 
+    # name='password_reset_done'),
+    path(
+        'forgot-password/done//',
+        ratelimit(key='ip', rate='5/m', block=True)(
+            ratelimit(key='post:email', rate='3/h', block=True)(
+                auth_views.PasswordResetView.as_view(
+                    template_name='registration/password_reset_form.html',
+                    success_url='/password-reset/done/'
+                )
+            )
+        ),
+        name='password_reset'
+    ), 
     path('reset/<uidb64>/<token>/', 
     auth_views.PasswordResetConfirmView.as_view(template_name="user/password_reset_confirm.html"), 
     name='password_reset_confirm'), 

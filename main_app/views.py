@@ -18,6 +18,7 @@ from .models import Promotion, NewsPost, SiteNotice, VisitorLog,VideoPost,Contac
 from django.contrib.auth.models import User 
 from .forms import IDCardForm 
 import uuid 
+import secrets
 import pandas as pd
 from django.utils.http import  urlsafe_base64_decode
 from django.utils.encoding import force_str
@@ -38,7 +39,7 @@ from django.apps import apps
 from django.contrib.admin.views.decorators import staff_member_required
 from datetime import datetime, timedelta
 import pytz
-
+from django_ratelimit.decorators import ratelimit
 
 
 
@@ -213,6 +214,7 @@ def signup_view(request):
         form = SignupEmailForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data.get('email')
+            email=email.lower()  # Normalize email to lowercase
             
             # Safely check if a user with this email already exists
             user = User.objects.filter(email=email).first()
@@ -589,8 +591,13 @@ def log_view(request):
         'logs': logs,  
     }
     return render(request, 'log.html', context)
-
+@ratelimit(key='ip', rate='2/m', block=True)
 def contact(request):
+    was_limited = getattr(request, 'limited', False)
+    if was_limited:
+        messages.error(request, "Too many requests. Please try again later.")
+        return redirect('contact')
+        
     if request.method == "POST":
         # Extract data from the POST request using the 'name' attribute from your HTML
         name = request.POST.get('name')
@@ -598,27 +605,128 @@ def contact(request):
         subject = request.POST.get('subject')
         message = request.POST.get('message')
 
-        # Create and save the object in the database
-       
         if not email or not message:
-             
-            messages.error( request,  'Error 400 :Email and message are required.')
+            messages.error(request, 'Error 400: Email and message are required.')
+            return redirect('contact')
+
+        # --- NEW: Verify that this email passed the OTP check ---
+        verified_email = request.session.get('verified_contact_email')
+        if verified_email != email:
+            messages.error(request, 'Please verify your contact email.')
             return redirect('contact')
 
         try:
             ContactMessage.objects.create(
-                        name=name,
-                        email=email,
-                        subject=subject,
-                        message=message
-                    )
+                name=name,
+                email=email,
+                subject=subject,
+                message=message
+            )
+            
+            # Clear session verification so the token cannot be reused
+            if 'verified_contact_email' in request.session:
+                del request.session['verified_contact_email']
+                
             messages.success(request, "Thank you for your query, we will be back as soon as possible.")
             return redirect('contact')
         except Exception as e:
-            messages.error( request,  f'Error 500 :{str(e)}.')
+            messages.error(request, f'Error 500: {str(e)}.')
             return redirect('contact')
              
     return render(request, 'contact.html')
+
+@ratelimit(key='ip', rate='3/m', block=True)  # Limit IP to sending OTP 3 times per minute
+@ratelimit(key='post:email', rate='2/h', block=True)  # Limit target email to 2 OTP requests per hour
+def ajax_send_otp(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if not email:
+            return JsonResponse({'success': False, 'error': 'Email is required.'}, status=400)
+
+        # Generate a secure 6-digit OTP
+        otp_code = f"{secrets.randbelow(1000000):06d}"
+        
+        # Store OTP data in cache (expires in 10 minutes)
+        otp_data = {
+            'otp': otp_code,
+            'attempts': 0
+        }
+        cache.set(f'contact_otp_{email}', otp_data, timeout=600)
+
+        # Send OTP email
+        send_mail(
+            subject='Your Verification Code',
+            message=f'Your verification code is: {otp_code}\n\nThis code expires in 10 minutes.',
+            from_email='noreply@yourdomain.com',
+            recipient_list=[email],
+        )
+        return JsonResponse({'success': True, 'message': 'OTP sent successfully!'})
+    return JsonResponse({'success': False}, status=400)
+
+def ajax_verify_otp(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        entered_otp = request.POST.get('otp')
+        
+        cache_key = f'contact_otp_{email}'
+        otp_data = cache.get(cache_key)
+
+        if not otp_data:
+            return JsonResponse({'success': False, 'error': 'OTP expired or not requested. Please request a new one.'}, status=400)
+
+        # Check max failed attempts (e.g., max 3 attempts)
+        if otp_data['attempts'] >= 3:
+            cache.delete(cache_key) # Invalidate OTP
+            return JsonResponse({'success': False, 'error': 'Too many incorrect attempts. Please request a new OTP.'}, status=400)
+
+        if otp_data['otp'] == entered_otp:
+            # Success! Mark email as verified in session
+            request.session['verified_contact_email'] = email
+            cache.delete(cache_key) # Clear cache so code cannot be reused
+            return JsonResponse({'success': True, 'message': 'Email verified successfully!'})
+        else:
+            # Increment failed attempt count
+            otp_data['attempts'] += 1
+            cache.set(cache_key, otp_data, timeout=600)
+            remaining = 3 - otp_data['attempts']
+            return JsonResponse({'success': False, 'error': f'Invalid OTP code. {remaining} attempts remaining.'}, status=400)
+            
+    return JsonResponse({'success': False}, status=400)
+
+# @ratelimit(key='ip', rate='2/m', block=True)
+# def contact(request):
+#     was_limited = getattr(request, 'limited', False)
+#     if was_limited:
+#         messages.error(request, "Too many requests. Please try again later.")
+#         return redirect('contact')
+#     if request.method == "POST":
+#         # Extract data from the POST request using the 'name' attribute from your HTML
+#         name = request.POST.get('name')
+#         email = request.POST.get('email')
+#         subject = request.POST.get('subject')
+#         message = request.POST.get('message')
+
+#         # Create and save the object in the database
+       
+#         if not email or not message:
+             
+#             messages.error( request,  'Error 400 :Email and message are required.')
+#             return redirect('contact')
+
+#         try:
+#             ContactMessage.objects.create(
+#                         name=name,
+#                         email=email,
+#                         subject=subject,
+#                         message=message
+#                     )
+#             messages.success(request, "Thank you for your query, we will be back as soon as possible.")
+#             return redirect('contact')
+#         except Exception as e:
+#             messages.error( request,  f'Error 500 :{str(e)}.')
+#             return redirect('contact')
+             
+#     return render(request, 'contact.html')
 
 @require_safe
 def api_admin_notifications(request):
@@ -1017,9 +1125,9 @@ def stock_live_api(request):
     # Fallback to last known cache if yfinance throws an error
     fallback = cache.get("last_market_close_tickers") or []
     return JsonResponse(
-        {"status": "error", "message": str(e), "ticker_data": fallback},
-        status=500,
-    )
+            {'success': False, 'error': 'An internal error occurred. Please try again later.'}, 
+            status=500
+        )
 
 
 def get_top_movers_api(request):
@@ -1069,7 +1177,11 @@ def get_top_movers_api(request):
 
     return JsonResponse(response_data)
   except Exception as e:
-    return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    print(f"Error fetching top movers: {e}")
+    return JsonResponse(
+            {'success': False, 'error': 'An internal error occurred. Please try again later.'}, 
+            status=500
+        )
 
 @login_required
 def create_id_card(request):
@@ -1146,3 +1258,6 @@ def custom_permission_denied_view(request, exception=None):
 
 def health_check(request):
     return HttpResponse("OK", status=200)
+
+def faq_view(request):
+    return render(request, 'faq.html')

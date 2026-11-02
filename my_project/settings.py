@@ -52,6 +52,12 @@ DEBUG             = os.getenv('DEBUG') == 'True'
 ALLOWED_HOSTS     = os.getenv('ALLOWED_HOSTS', '').split(',')
 GA_MEASUREMENT_ID = os.getenv('GA_MEASUREMENT_ID', '')
 site_url          = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL') 
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 # 4. Update Email Settings
 EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
@@ -61,12 +67,7 @@ ANYMAIL = {
 }
 
 # Set your custom domain email as the default sender
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL') 
-EMAIL_HOST = os.getenv('EMAIL_HOST')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
 
 
 
