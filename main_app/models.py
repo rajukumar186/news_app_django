@@ -6,6 +6,9 @@ import qrcode
 from io import BytesIO
 from django.core.files import File
 from datetime import datetime
+
+from my_project import settings
+
 class VisitorLog(models.Model):
     ip_address = models.GenericIPAddressField()
     page_visited = models.CharField(max_length=255)
@@ -64,10 +67,24 @@ class ContactMessage(models.Model):
     email = models.EmailField()
     subject = models.CharField(max_length=50, choices=SUBJECT_CHOICES)
     message = models.TextField()
+    is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True) # Useful for tracking when it was sent
 
     def __str__(self):
-        return f"{self.name} - {self.subject}"   
+        return f"{self.name} - {self.subject}"  
+     
+class AdminReplyMessage(models.Model):
+  query = models.ForeignKey(
+      ContactMessage, on_delete=models.SET_NULL, null=True, related_name='replies'
+  )
+  recipient_email = models.EmailField()
+  message_body = models.TextField()
+  sent_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  def __str__(self):
+    return f'Reply to {self.recipient_email}'
+  
 class NewsPost(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
@@ -92,6 +109,8 @@ class NewsPost(models.Model):
 class IDCard(models.Model):
   # Unique UUID primary key
   id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+  user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='id_cards')
+  is_approved = models.BooleanField(default=False)
 
   # Auto-generated serial employee ID (e.g., TPE-2026-000)
   employee_id = models.CharField(max_length=50, unique=True, blank=True)
@@ -134,7 +153,7 @@ class IDCard(models.Model):
 
     # 3. Generate QR code pointing to the verification URL with this card's UUID
     # Replace '127.0.0.1:8000' with your live domain in production
-    verification_url = f'http://127.0.0.1:8000/verify/{self.id}/'
+    verification_url = f'{settings.site_url}/verify/{self.id}/'
 
     qr = qrcode.QRCode(
         version=1,
@@ -159,6 +178,27 @@ class IDCard(models.Model):
 
   def __str__(self):
     return f'{self.full_name} ({self.employee_id})'
+
+
+class SiteNotice(models.Model):
+    NOTICE_TYPES = [
+        ('celebration', '🎉 Celebration / Festival (Image/Animation Popup)'),
+        ('urgent', '⚠️ Urgent Notice / Alert (Top Banner)'),
+    ]
+
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    notice_type = models.CharField(max_length=20, choices=NOTICE_TYPES, default='urgent')
+    image = models.ImageField(upload_to='notices/', blank=True, null=True, help_text="Optional banner/festival image")
+    is_active = models.BooleanField(default=False, help_text="Check to display this notice on the home page")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __index__(self):
+        return f"{self.get_notice_type_display()} - {self.title}"
+
+    class Meta:
+        verbose_name = "Site Notice & Celebration"
+        verbose_name_plural = "Site Notices & Celebrations"
 
 
         

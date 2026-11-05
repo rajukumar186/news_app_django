@@ -280,70 +280,45 @@
     }
 
     /* Print Optimization */
-    @media print {
-        @page {
-            size: 54mm 85.6mm;
-            margin: 0;
-        }
-
-        header, footer, aside, .no-print, nav, .sidebar {
-            display: none !important;
-        }
-        
-        body {
-            background: #ffffff !important;
-            color: #000000 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
-
-        .id-card-wrapper {
-            padding: 0 !important;
-            margin: 0 !important;
-            display: block !important;
-        }
-
-        .preview-container {
-            display: flex !important;
-            flex-direction: row !important;
-            gap: 10mm !important;
-            justify-content: center !important;
-            align-items: center !important;
-            page-break-after: always;
-        }
-
-        .id-card {
-            width: 54mm !important;
-            height: 85.6mm !important;
-            min-width: 54mm !important;
-            max-width: 54mm !important;
-            min-height: 85.6mm !important;
-            max-height: 85.6mm !important;
-            box-shadow: none !important;
-            margin: 0 !important;
-            page-break-inside: avoid;
-            break-inside: avoid;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
-
-        .id-card-front .card-header {
-            background: var(--primary-color) !important;
-            -webkit-print-color-adjust: exact !important;
-        }
-
-        .card-back-header, .card-footer {
-            background: #1e272e !important;
-            -webkit-print-color-adjust: exact !important;
-        }
-
-        .details-grid, .validity-row {
-            background: #f8f9fa !important;
-            -webkit-print-color-adjust: exact !important;
-        }
+    
+@media print {
+    /* Hide everything on the page except the ID card container */
+    body * {
+        visibility: hidden;
     }
+    
+    #id-card-container, #id-card-container * {
+        visibility: visible;
+    }
+    
+    #id-card-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+    /* Force standard page size and zero out unnecessary margins */
+    @page {
+        size: A4 portrait; /* Use 'letter' if you are in the US */
+        margin: 10mm;
+    }
+
+    /* Prevent any accidental page breaks inside your card wrapper */
+    .card-print-wrapper {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        display: flex;
+        gap: 10mm; /* Space between front and back */
+        align-items: center;
+    }
+
+    /* Hide the print button when printing */
+    .no-print {
+        display: none !important;
+    }
+}
+ 
 </style>
 {% endblock %}
 

@@ -18,19 +18,20 @@ from django.utils.html import strip_tags
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
+import feedparser
 from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.cache import cache
 
-def send_verification_invite(user):
-    # Create the secure token
-    token = default_token_generator.make_token(user)
+def send_verification_invite(request,user):
+    current_site = get_current_site(request)
+    domain = current_site.domain    
     uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user) 
+    protocol = 'https' if request.is_secure() else 'http'
     
-    # The URL the user clicks in the email
-    # Make sure 'set_password_confirm' matches the 'name' in your urls.py
-    link = f"https://thepeoplesera.onrender.com/set-password/{uid}/{token}/"
-    
+    link = f"{protocol}://{domain}/set-password/{uid}/{token}/"
+    # print(link)
     subject = "Verify your account - The Peoples Era"
     context = {'link': link, 'user': user}
     
@@ -46,8 +47,10 @@ def send_verification_invite(user):
         html_message=html_message,
         fail_silently=False,
     )
-    
 def send_password_reset_email(request, user):
+    if not user or not getattr(user, 'email', None):
+        return False
+
     domain = request.get_host()
     protocol = "https" if request.is_secure() else "http"
 
@@ -63,25 +66,44 @@ def send_password_reset_email(request, user):
 
     subject = "Password Reset Requested - The People's Era"
     
-    # Render both Plain Text and HTML templates
-    # text_content = render_to_string("registration/password_reset_email.txt", context)
-    html_content = render_to_string("registration/password_reset_email.html", context)
-    plain_message = strip_tags(html_content) 
-    
+    # Render the HTML template
+    html_content = render_to_string("user/password_reset_email.html", context)
+    text_content = strip_tags(html_content)
+    # print(text_content)
     send_mail(
         subject,
-        plain_message,
+        text_content,
         settings.DEFAULT_FROM_EMAIL,
         [user.email],
         html_message=html_content,
         fail_silently=False,
-    )
-    # Create multi-part email
-    # msg = EmailMultiAlternatives(
-    #     subject=subject,
-    #     body=text_content, # Plain text fallback
-    #     from_email=settings.DEFAULT_FROM_EMAIL,
-    #     to=[user.email]
-    # )
-    # msg.attach_alternative(html_content, "text/html") # HTML version
-    # msg.send(fail_silently=False)
+    ) 
+    return True
+
+
+
+def get_trending_news():
+    # Google News RSS feed configured specifically for India (English)
+    cached_news = cache.get('india_trending_news')
+    
+    if cached_news:
+        return cached_news # Instant load for users, zero extra hits to Google!
+
+    # If cache is empty or expired, fetch fresh news from Google (happens only once per hour)
+    rss_url = "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en"
+    feed = feedparser.parse(rss_url)
+    
+    trending_items = []
+    for entry in feed.entries:
+        trending_items.append({
+            'title': entry.title,
+            'link': entry.link,
+            'published': entry.published[:16]
+        })
+        
+    # Save the result in the cache for 1800 seconds (30 minutes)
+    cache.set('india_trending_news', trending_items, 1800)
+    
+    return trending_items
+
+ 

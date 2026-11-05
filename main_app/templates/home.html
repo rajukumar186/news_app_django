@@ -26,7 +26,7 @@
         --text-main: #e4e6eb;
         --text-muted: #b0b3b8;
         --border-color: rgba(255, 255, 255, 0.08);
-        --accent-color: #3992ff;
+        --accent-color: #a31515;
         --shadow-sm: 0 10px 30px rgba(0, 0, 0, 0.4);
         --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.6);
         --badge-bg: rgba(45, 45, 45, 0.85);
@@ -47,11 +47,222 @@
         padding: 0 30px;
     }
 
+    /* --- NOTICE / CELEBRATION STYLES --- */
+    .urgent-notice-banner {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 14px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(192, 57, 43, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        animation: slideDown 0.4s ease-out;
+        z-index: 10;
+    }
+    .urgent-notice-banner .notice-content {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    .urgent-notice-banner i {
+        font-size: 1.5rem;
+    }
+
+    .celebration-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .celebration-modal {
+        background: var(--card-bg);
+        color: var(--text-main);
+        width: 90%;
+        max-width: 450px;
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        position: relative;
+        border: 2px solid #f1c40f;
+        animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .celebration-modal img {
+        width: 100%;
+        max-height: 220px;
+        object-fit: cover;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .celebration-modal h2 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+        color: #c0392b;
+    }
+
+    .celebration-modal p {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+
+    .notice-close-btn {
+        background: none;
+        border: none;
+        color: inherit;
+        font-size: 1.5rem;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+        padding: 0;
+        line-height: 1;
+    }
+    .notice-close-btn:hover {
+        opacity: 1;
+    }
+
+    .celebration-close-action {
+        background: #c0392b;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 30px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.2s;
+    }
+    .celebration-close-action:hover {
+        transform: scale(1.05);
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes popUp {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
     /* 3. THE DYNAMIC GRID */
+    .featured-slider-wrap {
+        position: relative;
+        margin: 0 0 32px;
+    }
+
+    .featured-slider {
+        overflow: hidden;
+        border-radius: 22px;
+        border: 1px solid var(--border-color);
+        background: var(--card-bg);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .featured-track {
+        display: flex;
+        transition: transform 0.35s ease;
+    }
+
+    .featured-slide {
+        min-width: 100%;
+        display: block;
+        position: relative;
+        background: var(--card-bg);
+    }
+
+    .featured-slide .img-container {
+        height: 420px;
+        width: 100%;
+    }
+
+    .featured-slide-content {
+        position: absolute;
+        inset: auto 0 0 0;
+        background: linear-gradient(180deg, rgba(17, 24, 39, 0.05), rgba(2, 6, 23, 0.82));
+        padding: 28px 30px 24px;
+        color: #fff;
+    }
+
+    .featured-slide-content h3 {
+        color: #fff;
+        font-size: clamp(1.4rem, 2vw, 2.3rem);
+        margin: 0 0 12px;
+        line-height: 1.2;
+    }
+
+    .featured-slide-content p {
+        color: rgba(255, 255, 255, 0.88);
+        margin: 0;
+        max-width: 720px;
+    }
+
+    .featured-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 18px;
+    }
+
+    .featured-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .featured-meta .read-btn {
+        color: #ffffff;
+        text-decoration: underline;
+    }
+
+    .featured-nav {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        display: flex;
+        gap: 8px;
+        z-index: 3;
+    }
+
+    .featured-nav button {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(15, 23, 42, 0.4);
+        color: #fff;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
     .news-grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr); 
         gap: var(--grid-gap);
+        margin-bottom: 60px;
     }
 
     .news-card {
@@ -63,9 +274,9 @@
         border: 1px solid var(--border-color);
         box-shadow: var(--shadow-sm);
         transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
-        text-decoration: none; /* In case you wrap card in <a> */
+        text-decoration: none;
         color: inherit;
-        margin:5px;
+        margin: 5px;
     }
 
     .news-card:hover {
@@ -74,16 +285,15 @@
     }
 
     /* --- THE 7-ITEM PATTERN LOGIC --- */
-    /* Default: 1/3 width */
     .news-card { grid-column: span 4; }
 
     /* Row 1: 75% | 25% */
-    .news-card:nth-child(7n + 1) { grid-column: span 9; }
-    .news-card:nth-child(7n + 2) { grid-column: span 3; }
+    .news-grid .news-card:nth-child(7n + 1) { grid-column: span 9; }
+    .news-grid .news-card:nth-child(7n + 2) { grid-column: span 3; }
 
     /* Row 2: 25% | 75% (Reversed) */
-    .news-card:nth-child(7n + 3) { grid-column: span 3; }
-    .news-card:nth-child(7n + 4) { grid-column: span 9; }
+    .news-grid .news-card:nth-child(7n + 3) { grid-column: span 3; }
+    .news-grid .news-card:nth-child(7n + 4) { grid-column: span 9; }
 
     /* 4. VISUAL ELEMENTS */
     .img-container {
@@ -106,30 +316,143 @@
     }
 
     /* Proportional Heights */
-    .news-card:nth-child(7n + 1) .img-container,
-    .news-card:nth-child(7n + 4) .img-container { height: 440px; } /* Large */
+    .news-grid .news-card:nth-child(7n + 1) .img-container,
+    .news-grid .news-card:nth-child(7n + 4) .img-container { height: 440px; }
 
-    .news-card:nth-child(7n + 2) .img-container,
-    .news-card:nth-child(7n + 3) .img-container { height: 220px; } /* Small */
+    .news-grid .news-card:nth-child(7n + 2) .img-container,
+    .news-grid .news-card:nth-child(7n + 3) .img-container { height: 220px; }
 
-    .news-card:nth-child(7n + 5) .img-container,
-    .news-card:nth-child(7n + 6) .img-container,
-    .news-card:nth-child(7n + 7) .img-container { height: 280px; } /* Medium */
+    .news-grid .news-card:nth-child(7n + 5) .img-container,
+    .news-grid .news-card:nth-child(7n + 6) .img-container,
+    .news-grid .news-card:nth-child(7n + 7) .img-container { height: 280px; }
 
     .category-badge {
         position: absolute;
         top: 20px;
         left: 20px;
-        background: var(--badge-bg);
+        background: rgba(255, 255, 255, 0.88);
         backdrop-filter: blur(8px);
-        color: var(--text-main);
+        color: #111827;
         padding: 6px 14px;
         border-radius: 10px;
         font-size: 0.7rem;
         font-weight: 700;
         text-transform: uppercase;
         z-index: 2;
+        border: 1px solid rgba(15, 23, 42, 0.12);
+    }
+
+    body.dark .category-badge,
+    body.dark-mode .category-badge {
+        background: rgba(15, 23, 42, 0.72);
+        color: #f8fafc;
+        border-color: rgba(148, 163, 184, 0.24);
+    }
+
+    .news-filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin: 0 0 24px 0;
+    }
+
+    .news-filter-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #111827;
         border: 1px solid var(--border-color);
+        text-decoration: none;
+        font-size: 0.83rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    body.dark .news-filter-btn,
+    body.dark-mode .news-filter-btn {
+        background: rgba(17, 24, 39, 0.75);
+        color: #f8fafc;
+    }
+
+    .news-filter-btn:hover,
+    .news-filter-btn.active {
+        background: linear-gradient(135deg, #a71c04, #b1310a);
+        color: #ffffff !important;
+        border-color: transparent;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.18);
+    }
+
+    body.dark .news-filter-btn.active,
+    body.dark-mode .news-filter-btn.active {
+        background: linear-gradient(135deg, #a71c04, #b1310a);
+        color: #ffffff !important;
+    }
+
+    .trending-strip {
+        display: flex;
+        align-items: center;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        overflow: hidden;
+        margin: 0 0 24px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .trending-label {
+        flex-shrink: 0;
+        background: linear-gradient(135deg, var(--primary-color), #7f1d1d);
+        color: #ffffff;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 12px 16px;
+    }
+
+    .trending-items {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 12px 16px;
+        scrollbar-width: thin;
+        -ms-overflow-style: auto;
+        width: 100%;
+    }
+
+    .trending-items::-webkit-scrollbar {
+        height: 7px;
+    }
+
+    .trending-items::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.5);
+        border-radius: 999px;
+    }
+
+    .trending-item {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.08);
+        color: var(--text-main);
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .trending-item:hover {
+        background: var(--primary-color);
+        color: #ffffff;
+        border-color: transparent;
     }
 
     .card-content {
@@ -161,6 +484,14 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 12px;
+    }
+
+    .article-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
     }
 
     .read-btn {
@@ -168,6 +499,40 @@
         text-decoration: none;
         font-weight: 700;
         font-size: 0.9rem;
+    }
+
+    .share-trigger {
+        border: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--text-main);
+        border-radius: 999px;
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    }
+
+    body.dark .share-trigger,
+    body.dark-mode .share-trigger {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-main);
+    }
+
+    .share-trigger:hover {
+        background: var(--primary-color, #b40a0a);
+        color: white;
+        border-color: transparent;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(180, 10, 10, 0.18);
+    }
+
+    .share-trigger i {
+        font-size: 0.95rem;
     }
 
     /* 5. RESPONSIVE DESIGN */
@@ -179,8 +544,16 @@
 
     @media (max-width: 650px) {
         .news-grid { grid-template-columns: 1fr; }
-        .home-container { padding: 0 20px; margin: 20px auto; }
+        .home-container { padding: 0 5px; margin: 5px auto; }
         .card-content { padding: 20px; }
+        .card-footer {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .article-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
     }
 </style>
 {% endblock %}
@@ -188,40 +561,306 @@
 {% block content %}
 <div class="home-container">
     
-     <h2 style="font-size: 2.0rem; font-weight: 600; margin: 0;">Discovery</h2>
-
-    <div class="news-grid">
-            
-         
-        {% for post in posts %}
-        <div class="news-card">
-            <div class="img-container">
-                <span class="category-badge">{{ post.category }}</span>
-                {% if post.image %}
-                    <img src="{{ post.image.url }}" alt="{{ post.title }}">
-                {% else %}
-                    <div style="width: 100%; height: 100%; background: var(--border-color); display: flex; align-items: center; justify-content: center;">
-                        <small style="color: var(--text-muted);">No Image</small>
+    <!-- SUPER ADMIN MANAGED NOTICE / CELEBRATION POPUP -->
+    {% if active_notice %}
+        {% if active_notice.notice_type == 'urgent' %}
+            <div id="site-notice-banner" class="urgent-notice-banner">
+                <div class="notice-content">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        <strong style="display: block; font-size: 1rem; margin-bottom: 2px;">{{ active_notice.title }}</strong>
+                        <span style="font-size: 0.9rem; opacity: 0.95;">{{ active_notice.message }}</span>
                     </div>
-                {% endif %}
+                </div>
+                <button class="notice-close-btn" onclick="dismissNotice('site-notice-banner')">&times;</button>
             </div>
+        {% elif active_notice.notice_type == 'celebration' %}
+            <div id="site-notice-modal" class="celebration-overlay">
+                <div class="celebration-modal">
+                    <button class="notice-close-btn" onclick="dismissNotice('site-notice-modal')" style="position: absolute; top: 15px; right: 20px; color: var(--text-muted);">&times;</button>
+                    
+                    {% if active_notice.image %}
+                        <img src="{{ active_notice.image.url }}" alt="{{ active_notice.title }}">
+                    {% else %}
+                        <div style="font-size: 3rem; margin-bottom: 10px;">🎉🪔✨</div>
+                    {% endif %}
 
-            <div class="card-content">
-                <h3>{{ post.title }}</h3>
-                <p>{{ post.content|truncatewords:18 }}</p>
-                
-                <div class="card-footer">
-                    <a href="{% url 'news_detail' post.slug %}" class="read-btn">Full Story →</a>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">{{ post.created_at|date:"M d" }}</span>
+                    <h2>{{ active_notice.title }}</h2>
+                    <p>{{ active_notice.message }}</p>
+                    
+                    <button class="celebration-close-action" onclick="dismissNotice('site-notice-modal')">Awesome, Thank You!</button>
                 </div>
             </div>
+        {% endif %}
+    {% endif %}
+  
+    <!-- SECTION 2: GLOBAL + INDIA NEWS FEED -->
+    {% if combined_news %}
+        <div id="global-news-section">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px;">
+                <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0;">Latest News</h2>
+            </div>
+
+            <div class="news-filter-bar">
+                {% for item in news_categories %}
+                    <a href="?category={{ item.value }}" data-category="{{ item.value }}" class="news-filter-btn {% if selected_category == item.value %}active{% endif %}">{{ item.label }}</a>
+                {% endfor %}
+            </div>
+
+            {% if featured_news %}
+            <div class="featured-slider-wrap">
+                <div class="featured-slider" data-slider>
+                    <div class="featured-track">
+                        {% for article in featured_news %}
+                        <article class="featured-slide">
+                            <div class="img-container">
+                                {% if article.section_type == 'india' and article.image_url %}
+                                    <img src="{{ article.image_url }}" alt="{{ article.title }}">
+                                {% elif article.section_type == 'global' and article.image %}
+                                    <img src="{{ article.image }}" alt="{{ article.title }}">
+                                {% else %}
+                                    <div style="width: 100%; height: 100%; background: var(--border-color); display: flex; align-items: center; justify-content: center;">
+                                        <small style="color: var(--text-muted);">No Image</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="featured-slide-content">
+                                <div class="featured-actions">
+                                    <span class="category-badge" style="position: static; margin: 0;">{{ article.display_source|default:article.section_type|title }}</span>
+                                     
+                                </div>
+                                <h3>{{ article.title }}</h3>
+                                <p>{{ article.description|default:"No description available."|truncatewords:24 }}</p>
+                                <div class="featured-meta" style="margin-top: 14px; justify-content: flex-start; gap: 16px;">
+                                    <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="read-btn">Full Story →</a>
+                                    <button type="button" class="share-trigger" data-title="{{ article.title|escapejs }}" data-url="{{ request.build_absolute_uri }}?source={{ article.url|urlencode }}" aria-label="Share article" style="position: static; width: 32px; height: 32px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid fa-share-nodes"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="featured-nav">
+                    <button type="button" data-slider-prev aria-label="Previous slide">‹</button>
+                    <button type="button" data-slider-next aria-label="Next slide">›</button>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="news-grid">
+                {% for article in remaining_news %}
+                <div class="news-card">
+                    <div class="img-container">
+                        <span class="category-badge">{{ article.display_source|default:article.section_type|title }}</span>
+                        {% if article.section_type == 'india' and article.image_url %}
+                            <img src="{{ article.image_url }}" alt="{{ article.title }}">
+                        {% elif article.section_type == 'global' and article.image %}
+                            <img src="{{ article.image }}" alt="{{ article.title }}">
+                        {% else %}
+                            <div style="width: 100%; height: 100%; background: var(--border-color); display: flex; align-items: center; justify-content: center;">
+                                <small style="color: var(--text-muted);">No Image</small>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-content">
+                        <h3>{{ article.title }}</h3>
+                        <p>{{ article.description|default:"No description available."|truncatewords:18 }}</p>
+
+                        <div class="card-footer">
+                            <div class="article-actions">
+                                <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="read-btn">Full Story →</a>
+                                <button type="button" class="share-trigger" data-title="{{ article.title|escapejs }}" data-url="{{ request.build_absolute_uri }}?source={{ article.url|urlencode }}" aria-label="Share article">
+                                    <i class="fa-solid fa-share-nodes"></i>
+                                </button>
+                            </div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">{{ article.published_date|default:article.published_at|slice:":16" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-        {% empty %}
-        <div style="grid-column: 1 / -1; text-align: center; padding: 100px 0;">
-            <p style="color: var(--text-muted);">No stories found yet.</p>
+    {% endif %}
+     <!-- SECTION 1: DISCOVERY (Existing Posts) -->
+    {% if posts %}
+        <h2 style="font-size: 1.5rem; font-weight: 500; margin: 0 0 15px 0;">Discovery</h2>
+        
+        <div class="news-grid">
+            {% for post in posts %}
+            <div class="news-card">
+                <div class="img-container">
+                    <span class="category-badge">{{ post.category }}</span>
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                    {% else %}
+                        <div style="width: 100%; height: 100%; background: var(--border-color); display: flex; align-items: center; justify-content: center;">
+                            <small style="color: var(--text-muted);">No Image</small>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="card-content">
+                    <h3>{{ post.title }}</h3>
+                    <p>{{ post.content|truncatewords:18 }}</p>
+                    
+                    <div class="card-footer">
+                        <div class="article-actions">
+                            <a href="{% url 'news_detail' post.slug %}" class="read-btn">Full Story →</a>
+                            <button type="button" class="share-trigger" data-title="{{ post.title|escapejs }}" data-url="{{ request.build_absolute_uri }}{% url 'news_detail' post.slug %}" aria-label="Share article">
+                                <i class="fa-solid fa-share-nodes"></i>
+                            </button>
+                        </div>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ post.created_at|date:"M d" }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        
         </div>
-        {% endfor %}
-    </div>
+    {% endif %}
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function dismissNotice(elementId) {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            el.style.opacity = '0';
+            if(el.classList.contains('celebration-overlay')) {
+                el.style.transform = 'scale(0.95)';
+            } else {
+                el.style.transform = 'translateY(-10px)';
+            }
+            setTimeout(() => el.remove(), 400);
+        }
+    }
+
+    function shareArticle({ title, url }) {
+        if (navigator.share) {
+            navigator.share({
+                title: title,
+                text: title,
+                url: url
+            }).catch(() => {});
+            return;
+        }
+
+        const fallbackUrl = `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`;
+        window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    function bindShareButtons() {
+        document.querySelectorAll('.share-trigger').forEach(trigger => {
+            trigger.addEventListener('click', (event) => {
+                event.stopPropagation();
+                shareArticle({
+                    title: trigger.dataset.title || 'News article',
+                    url: trigger.dataset.url || window.location.href
+                });
+            });
+        });
+    }
+
+    function bindCategoryFilters() {
+        const section = document.getElementById('global-news-section');
+        if (!section) return;
+
+        const buttons = section.querySelectorAll('.news-filter-btn');
+        buttons.forEach(button => {
+            button.addEventListener('click', async (event) => {
+                event.preventDefault();
+
+                const category = button.dataset.category || 'general';
+                const url = new URL(window.location.href);
+                url.searchParams.set('category', category);
+                url.searchParams.set('ajax', '1');
+
+                history.pushState({}, '', url);
+
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    const html = await response.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newSection = doc.querySelector('#global-news-section');
+
+                    if (newSection && section) {
+                        section.innerHTML = newSection.innerHTML;
+                        bindCategoryFilters();
+                        bindShareButtons();
+                        bindFeaturedSlider();
+                    }
+                } catch (error) {
+                    window.location.href = url.toString();
+                }
+            });
+        });
+    }
+
+    function bindFeaturedSlider() {
+        document.querySelectorAll('[data-slider]').forEach(slider => {
+            const track = slider.querySelector('.featured-track');
+            const slides = slider.querySelectorAll('.featured-slide');
+            const prevBtn = slider.parentElement.querySelector('[data-slider-prev]');
+            const nextBtn = slider.parentElement.querySelector('[data-slider-next]');
+
+            if (!track || slides.length < 2) return;
+
+            let currentIndex = 0;
+            const updateSlider = () => {
+                track.style.transform = `translateX(-${currentIndex * 100}%)`;
+            };
+
+            prevBtn?.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+                updateSlider();
+            });
+
+            nextBtn?.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % slides.length;
+                updateSlider();
+            });
+
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % slides.length;
+                updateSlider();
+            }, 4000);
+
+            updateSlider();
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const urgentBanner = document.getElementById('site-notice-banner');
+        const celebrationModal = document.getElementById('site-notice-modal');
+
+        if (urgentBanner) {
+            setTimeout(() => dismissNotice('site-notice-banner'), 30000);
+        }
+        if (celebrationModal) {
+            setTimeout(() => dismissNotice('site-notice-modal'), 30000);
+        }
+
+        bindCategoryFilters();
+        bindShareButtons();
+        bindFeaturedSlider();
+    });
+
+    window.addEventListener('popstate', () => {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('category')) {
+            window.location.reload();
+        }
+    });
+</script>
 {% endblock %}

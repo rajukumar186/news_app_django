@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+
+{% block title %}User Manual | The People's Era{% endblock %}
+
+{% block extra_css %}
+<style>
+    .manual-page {
+        max-width: 980px;
+        margin: 32px auto 60px;
+        padding: 0 20px;
+    }
+
+    .manual-cover {
+        background: linear-gradient(135deg, rgba(180,10,10,0.08), rgba(59,130,246,0.08));
+        border: 1px solid var(--border-color);
+        border-radius: 22px;
+        padding: 34px 28px;
+        margin-bottom: 28px;
+    }
+
+    .manual-cover h1 {
+        margin: 0 0 10px;
+        font-size: clamp(2rem, 4vw, 3rem);
+        letter-spacing: -0.05em;
+    }
+
+    .manual-cover p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+
+    .manual-section {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 22px 22px 16px;
+        margin-bottom: 22px;
+        break-inside: avoid;
+    }
+
+    .manual-section h2 {
+        margin: 0 0 16px;
+        font-size: 1.35rem;
+        color: var(--primary-color);
+    }
+
+    .manual-section h3 {
+        margin: 18px 0 10px;
+        font-size: 1.05rem;
+        color: var(--text-main);
+    }
+
+    .manual-section p,
+    .manual-section li {
+        color: var(--text-muted);
+        line-height: 1.7;
+        font-size: 0.96rem;
+    }
+
+    .manual-section ul {
+        margin: 0 0 0 18px;
+        padding: 0;
+    }
+
+    .manual-note {
+        background: rgba(180,10,10,0.04);
+        border-left: 4px solid var(--primary-color);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-top: 14px;
+    }
+
+    .print-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin: 0 0 18px;
+    }
+
+    .print-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        padding: 10px 18px;
+        font-weight: 700;
+    }
+
+    @media print {
+        body {
+            background: #fff !important;
+            color: #111 !important;
+        }
+
+        .print-btn,
+        .topbar,
+        .site-footer,
+        .header-actions,
+        .nav-wrap,
+        .mobile-menu,
+        .floating-socials {
+            display: none !important;
+        }
+
+        .manual-page {
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .manual-section,
+        .manual-cover {
+            box-shadow: none !important;
+            border-color: #ddd !important;
+            background: #fff !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="manual-page">
+    <div class="print-actions">
+        <a href="javascript:window.print()" class="print-btn">Print / Save as PDF</a>
+    </div>
+
+    <div class="manual-cover">
+        <h1>The People's Era</h1>
+        <p>User Manual for website visitors, contributors, advertisers, and administrators</p>
+    </div>
+
+    <section class="manual-section">
+        <h2>1. Overview</h2>
+        <p>The People's Era is a modern news and community platform where users can read the latest updates, discover local stories, explore promotional opportunities, submit support requests, and interact with the admin team.</p>
+        <p>The platform includes:</p>
+        <ul>
+            <li>News and article browsing</li>
+            <li>Login, signup, and password recovery</li>
+            <li>Contact form with email OTP verification</li>
+            <li>Promotion and advertisement management</li>
+            <li>ID card creation and approval flow</li>
+            <li>Admin dashboard and support chat</li>
+        </ul>
+    </section>
+
+    <section class="manual-section">
+        <h2>2. Getting Started</h2>
+
+        <h3>Open the website</h3>
+        <p>Visit the homepage and explore the latest stories, categories, and featured content.</p>
+
+        <h3>Create an account</h3>
+        <ul>
+            <li>Click <strong>Login</strong> or <strong>Sign Up</strong> from the website header.</li>
+            <li>Enter your name, email, and password.</li>
+            <li>Complete the registration process and log in to access personalized actions.</li>
+        </ul>
+
+        <h3>Login and logout</h3>
+        <ul>
+            <li>Use your registered email and password to log in.</li>
+            <li>After login, access your profile and interactive services.</li>
+            <li>Use the logout option from the user menu to sign out securely.</li>
+        </ul>
+    </section>
+
+    <section class="manual-section">
+        <h2>3. Reading News and Content</h2>
+        <ul>
+            <li>Browse the homepage for trending stories and featured posts.</li>
+            <li>Use category buttons or filters to view relevant news sections.</li>
+            <li>Click a story title to open the full article page.</li>
+            <li>Use the share or quick action buttons to interact with the content.</li>
+        </ul>
+        <div class="manual-note">
+            <strong>Tip:</strong> Keep your browser updated for the best experience with article pages, media, and forms.
+        </div>
+    </section>
+
+    <section class="manual-section">
+        <h2>4. Contact Form and OTP Verification</h2>
+        <ol>
+            <li>Open the <strong>Contact</strong> page.</li>
+            <li>Select the subject that matches your purpose, such as support, advertisement, legal query, or general inquiry.</li>
+            <li>Enter your name, email, and message.</li>
+            <li>Request an OTP code. A one-time password is sent to the email provided.</li>
+            <li>Verify the OTP before submitting the contact request.</li>
+        </ol>
+        <p>If you do not receive the code, check your spam folder and click the resend option.</p>
+    </section>
+
+    <section class="manual-section">
+        <h2>5. Forgot Password and Account Recovery</h2>
+        <ul>
+            <li>Click <strong>Forgot Password</strong> from the login popup or login page.</li>
+            <li>Enter the email linked to your account.</li>
+            <li>Follow the password reset link sent to your inbox.</li>
+            <li>Set a new password and return to the login screen.</li>
+        </ul>
+    </section>
+
+    <section class="manual-section">
+        <h2>6. Promotions and Advertising</h2>
+        <p>Business users can submit promotion requests through the platform for advertising and sponsored visibility.</p>
+        <ul>
+            <li>Go to the advertisement or promo section.</li>
+            <li>Fill in your business details and choose a plan.</li>
+            <li>Submit the request for admin review.</li>
+            <li>Admins review and activate or reject requests depending on approval status.</li>
+        </ul>
+        <p>Approved promotions appear as active campaign slots and are shown to visitors.</p>
+    </section>
+
+    <section class="manual-section">
+        <h2>7. ID Card and Employee Flow</h2>
+        <p>Employees may create or update their ID card information for verification.</p>
+        <ul>
+            <li>Open the ID card generation section.</li>
+            <li>Fill in your employee details carefully.</li>
+            <li>Submit the form to initiate verification.</li>
+            <li>Admins review and approve or reject the request.</li>
+            <li>Approved cards can be viewed or verified using the generated card link.</li>
+        </ul>
+    </section>
+
+    <section class="manual-section">
+        <h2>8. Admin Dashboard</h2>
+        <p>Super admins can manage the platform from the control panel.</p>
+        <ul>
+            <li>Review statistics and recent records.</li>
+            <li>Manage users, promotions, notices, videos, and news updates.</li>
+            <li>Open support chat with users and respond to live requests.</li>
+            <li>Review pending promotion requests and employee ID approvals.</li>
+            <li>Open model management pages for records and site management tasks.</li>
+        </ul>
+    </section>
+
+    <section class="manual-section">
+        <h2>9. Support Chat and Messaging</h2>
+        <p>Users can start support conversations and admins can respond using the built-in chat desk.</p>
+        <ul>
+            <li>Choose a room or user thread from the support desk.</li>
+            <li>Open the chat popup and send a message.</li>
+            <li>Admins can see timestamps and status details for sent messages.</li>
+        </ul>
+    </section>
+
+    <section class="manual-section">
+        <h2>10. Best Practices</h2>
+        <ul>
+            <li>Use a valid email address for all account and contact submissions.</li>
+            <li>Keep messages clear and specific when contacting support.</li>
+            <li>Check pending promotions and approvals regularly if you are managing the platform.</li>
+            <li>Do not share OTP codes with anyone else.</li>
+        </ul>
+    </section>
+
+    <section class="manual-section">
+        <h2>11. FAQ and Help</h2>
+        <p>For common concerns and quick answers, visit the FAQ page. If you cannot find the answer you need, use the contact form and provide a detailed description of the issue.</p>
+        <p><strong>Support channels:</strong> contact page, admin help desk, and email verification workflow.</p>
+    </section>
+</div>
+{% endblock %}

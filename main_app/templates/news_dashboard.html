@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Latest News Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Top News Headlines</h2>
+    <span class="badge bg-primary fs-6">{{ articles|length }} Articles</span>
+</div>
+
+{% if articles %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for article in articles %}
+            <div class="col">
+                <div class="card h-100 shadow-sm border-0">
+                    
+                    <!-- Article Image -->
+                    {% if article.image_url %}
+                        <img src="{{ article.image_url }}" class="card-img-top" style="height: 200px; object-fit: cover;" alt="{{ article.title }}">
+                    {% else %}
+                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <span>No Image Available</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="card-body d-flex flex-column">
+                        
+                        <!-- Source & Date -->
+                        <div class="d-flex justify-content-between text-muted small mb-2">
+                            <span class="fw-semibold text-dark">{{ article.source_name|default:article.source_id|default:"News" }}</span>
+                            <span>{{ article.pubDate|slice:":10" }}</span>
+                        </div>
+
+                        <!-- Categories (displayed as small badges) -->
+                        {% if article.category %}
+                            <div class="mb-2">
+                                {% for cat in article.category %}
+                                    <span class="badge bg-light text-secondary border me-1 small">{{ cat }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Article Title -->
+                        <h5 class="card-title text-dark h6 fw-bold">
+                            {{ article.title }}
+                        </h5>
+
+                        <!-- Article Description -->
+                        <p class="card-text text-secondary small flex-grow-1">
+                            {% if article.description %}
+                                {{ article.description }}
+                            {% else %}
+                                Click below to read the full coverage for this news item.
+                            {% endif %}
+                        </p>
+
+                        <!-- Author / Creator (handling list format from API) -->
+                        {% if article.creator %}
+                            <div class="text-muted small mb-3 fst-italic">
+                                By {{ article.creator.0 }}
+                            </div>
+                        {% endif %}
+
+                        <!-- Read More Button -->
+                        <a href="{{ article.link }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm mt-auto w-100">
+                            Read Full Article &rarr;
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <!-- Empty State -->
+    <div class="alert alert-warning text-center my-5" role="alert">
+        <h4 class="alert-heading">No News Available</h4>
+        <p>Could not load articles at this time. Please check your API configuration or try again later.</p>
+    </div>
+{% endif %}
+{% endblock %}

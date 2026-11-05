@@ -106,6 +106,24 @@ class SignupEmailForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['email']
+class ProfileEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email address'}),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            email = email.strip()
+        return email
+
+
 class PromotionForm(forms.ModelForm):
     class Meta:
         model = Promotion

@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}FAQ & User Manual - The People's Era{% endblock %}
+
+{% block extra_css %}
+<style>
+    .faq-container {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .faq-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .faq-header h2 {
+        color: var(--text-main);
+        font-weight: 800;
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+    }
+
+    .faq-header p {
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+
+    .faq-category {
+        margin-bottom: 35px;
+    }
+
+    .faq-category h3 {
+        color: var(--primary-color);
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 8px;
+    }
+
+    .faq-item {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        overflow: hidden;
+        transition: border-color 0.3s;
+    }
+
+    .faq-question {
+        width: 100%;
+        background: none;
+        border: none;
+        text-align: left;
+        padding: 18px 20px;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-main);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .faq-question i {
+        transition: transform 0.3s;
+        color: var(--primary-color);
+    }
+
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+        padding: 0 20px;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .faq-item.active .faq-answer {
+        max-height: 200px; /* Adjust if answers are longer */
+        padding: 0 20px 20px 20px;
+    }
+
+    .faq-item.active .faq-question i {
+        transform: rotate(180deg);
+    }
+
+    /* Manual Download Card */
+    .manual-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 30px;
+        text-align: center;
+        margin-top: 50px;
+    }
+
+    .manual-card h4 {
+        color: var(--text-main);
+        margin-bottom: 10px;
+    }
+
+    .manual-card p {
+        color: var(--text-muted);
+        margin-bottom: 20px;
+    }
+
+    .btn-manual {
+        display: inline-block;
+        background: var(--primary-color);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+        transition: opacity 0.3s;
+    }
+
+    .btn-manual:hover {
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="faq-container">
+    <div class="faq-header">
+        <h2>Frequently Asked Questions & User Manual</h2>
+        <p>Find answers to common questions and learn how to navigate and use The People's Era platform.</p>
+    </div>
+
+    <!-- Category 1: Account & Email Verification -->
+    <div class="faq-category">
+        <h3>1. Account & Verification</h3>
+        
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>Why do I need to verify my email using an OTP on the contact form?</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                We use an Email OTP (One-Time Password) verification step to prevent automated spam bots from flooding our support team with fake messages, ensuring that we can reach you back promptly.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>I didn't receive my OTP code. What should I do?</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                First, check your Spam or Junk folder. If it hasn't arrived within a minute, click the "Resend OTP" button next to your email address to generate a fresh verification code.
+            </div>
+        </div>
+    </div>
+
+    <!-- Category 2: Content & Video Clips -->
+    <div class="faq-category">
+        <h3>2. Clips & Content Guidelines</h3>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>How can I report copyright infringement or request a clip removal?</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                Go to our <a href="{% url 'contact' %}" style="color: var(--primary-color);">Contact page</a>, select "Copyright Report" from the Subject dropdown, and provide the link or details of the content in question. Our legal team reviews reports within 24–48 hours.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>How do I submit video help requests or technical bugs?</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                Choose "Video Upload Help" in the contact form subject line and describe the issue you are facing. Attaching clear steps or screenshots helps us resolve it faster.
+            </div>
+        </div>
+    </div>
+
+    <!-- Category 3: Advertising -->
+    <div class="faq-category">
+        <h3>3. Advertising & Promotions</h3>
+
+        <div class="faq-item">
+            <button class="faq-question" onclick="toggleFaq(this)">
+                <span>How do I book promotional ad space on your platform?</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-answer">
+                We offer dedicated promotional banner spaces for $10 per week. Select "Advertising Opportunities" on our contact form or email us directly at <a href="mailto:support@thepeoplesera.com" style="color: var(--text-main); font-weight: 600;">support@thepeoplesera.com</a> to check slot availability.
+            </div>
+        </div>
+    </div>
+
+    <!-- User Manual Download / Guide Box -->
+    <div class="manual-card">
+        <h4>Need More Detailed Guidance?</h4>
+        <p>Explore our complete platform handbook for deep-dive tutorials on all features.</p>
+        <a href="{% url 'user_manual' %}" class="btn-manual" target="_blank"><i class="fas fa-download"></i> Open User Manual</a>
+    </div>
+</div>
+
+<!-- Accordion Interactive Script -->
+<script>
+    function toggleFaq(button) {
+        const item = button.parentElement;
+        const isActive = item.classList.contains('active');
+        
+        // Close all other open accordion items
+        document.querySelectorAll('.faq-item').forEach(el => {
+            el.classList.remove('active');
+        });
+
+        // If it wasn't active, open it
+        if (!isActive) {
+            item.classList.add('active');
+        }
+    }
+</script>
+{% endblock %}

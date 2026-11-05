@@ -12,63 +12,99 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+from dotenv import load_dotenv
+import dj_database_url
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
+DEBUG = os.getenv('DEBUG', 'False').strip().lower() == 'true'
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'dev-only-very-long-random-key-change-me-in-production-1234567890'
+    else:
+        raise RuntimeError('SECRET_KEY must be set in production.')
 
-# SECURITY WARNING: keep the secret key used in production secret!
- 
+NEWS_API_KEY = os.getenv('NEWS_API_KEY', '')
+GNEWS_API_KEY = os.getenv('GNEWS_API_KEY', '')
 
-# SECURITY WARNING: don't run with debug turned on in production!
+DEFAULT_ALLOWED_HOSTS = 'localhost,127.0.0.1,0.0.0.0,thepeoplesera.com,www.thepeoplesera.com'
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', DEFAULT_ALLOWED_HOSTS).split(',') if host.strip()]
+GA_MEASUREMENT_ID = os.getenv('GA_MEASUREMENT_ID', '')
+site_url = os.environ.get('SITE_URL', 'https://thepeoplesera.com')
 
- 
-# After login, go to the home page (or whatever name you gave your home URL)
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-
-# If they try to access a protected page without logging in, send them here:
 LOGIN_URL = 'login'
-site_url = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')
-# Application definition
 
-# settings.py
-# 1. Add this import
+CSRF_TRUSTED_ORIGINS = [
+    'https://thepeoplesera.com',
+    'https://www.thepeoplesera.com',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+if os.getenv('CSRF_TRUSTED_ORIGINS'):
+    CSRF_TRUSTED_ORIGINS.extend(
+        origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS').split(',') if origin.strip()
+    )
 
-# 2. Load the .env file
-load_dotenv()
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+X_FRAME_OPTIONS = 'DENY'
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# 3. Replace hardcoded values with os.getenv()
-SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG') == 'True'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
-
-# 4. Update Email Settings
-EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'anymail.backends.resend.EmailBackend'
 
 ANYMAIL = {
     'RESEND_API_KEY': os.environ.get('RESEND_API_KEY'),
 }
 
-# Set your custom domain email as the default sender
-DEFAULT_FROM_EMAIL = 'support@thepeoplesera.com'
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@thepeoplesera.com')
 EMAIL_HOST = os.getenv('EMAIL_HOST')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
+SECURE_CONTENT_TYPE_NOSNIFFING = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 
-
+CONTENT_SECURITY_POLICY = {
+    'DIRECTIVES': {
+        'default-src': ("'self'",),
+        'script-src': ("'self'", "'unsafe-inline'", "https://translate.google.com", "https://translate.googleapis.com", "https://www.gstatic.com", "https://unpkg.com", "https://cdn.jsdelivr.net"),
+        'style-src': ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://unpkg.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"),
+        'font-src': ("'self'", "data:", "https://fonts.gstatic.com", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"),
+        'img-src': ("'self'", "data:", "blob:", "https:"),
+        'connect-src': ("'self'", "ws:", "wss:", "https://api.openweathermap.org", "https://gnews.io", "https://newsdata.io", "https://translate.googleapis.com", "https://translate.google.com", "https://www.gstatic.com"),
+        'frame-src': ("'self'", "https://translate.google.com", "https://translate.googleapis.com", "https://www.gstatic.com"),
+        'child-src': ("'self'", "https://translate.google.com", "https://translate.googleapis.com", "https://www.gstatic.com"),
+        'frame-ancestors': ("'none'",),
+        'base-uri': ("'self'",),
+        'form-action': ("'self'",),
+        'object-src': ("'none'",),
+        'media-src': ("'self'", "data:"),
+    },
+    'REPORT_ONLY': False,
+}
 
 INSTALLED_APPS = [
     'jazzmin',
+    'csp',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -77,10 +113,27 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'anymail',
     'main_app',
+    'chat', 
+    'channels',
   
 ]
 
-
+REDIS_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1')
+if REDIS_URL and not DEBUG:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [REDIS_URL],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        },
+    }
 JAZZMIN_SETTINGS = {
     # Path to the logo (relative to STATIC_URL)
     "site_logo": "images/logo.png", 
@@ -103,6 +156,7 @@ JAZZMIN_SETTINGS = {
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "csp.middleware.CSPMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.middleware.common.CommonMiddleware",
@@ -127,25 +181,45 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 "django.contrib.messages.context_processors.messages",
                 'main_app.context_processors.sidebar_promotions',
+                'main_app.context_processors.google_analytics',
                
             ],
         },
     },
 ]
 
+ASGI_APPLICATION = 'my_project.asgi.application'
 WSGI_APPLICATION = "my_project.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else: 
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
 
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
+
+SESSION_COOKIE_AGE = 60 * 60 * 8
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -166,6 +240,22 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# HANDLE CACHES
+if DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'local-development-cache',
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+        }
+    }
+
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
@@ -178,16 +268,11 @@ USE_I18N = True
 USE_TZ = True
  
 # Set the time zone to India
-TIME_ZONE = 'Asia/Kolkata'
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
- 
+TIME_ZONE = 'Asia/Kolkata' 
 
 # This tells Django where to collect static files for production
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATIC_URL = "static/"
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

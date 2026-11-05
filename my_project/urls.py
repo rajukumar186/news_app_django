@@ -21,56 +21,99 @@ from main_app import views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
-urlpatterns = [
+from django.urls import include, path, re_path
+from django.views.static import serve
+from main_app.views import (
+    ajax_verify_otp,
+    custom_super_admin_dashboard,
+    dynamic_model_list,
+    dynamic_model_create,
+    dynamic_model_edit,
+    dynamic_model_delete,
+    ajax_send_otp,
+)
+
+
+urlpatterns = [ 
+   
     
-    
-    path('', views.home, name='home'),
     path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
     path('superadmin/', views.superadmin_dashboard, name='superadmin'),
     path('profile/', views.profile_view, name='profile'),
     path('promotion/', views.create_promotion, name='promotion'),
     path('news/', views.create_news, name='news'),
-    path('stocks/', views.stocks, name='stocks'),
+    path('stocks/', views.stocks_view, name='stocks'),
+
+    path('', views.home, name='home'),
     path('contact/', views.contact, name='contact'),
+    path('contact/send-otp/', ajax_send_otp, name='ajax_send_otp'),
+    path('contact/verify-otp/', ajax_verify_otp, name='ajax_verify_otp'),
     path('about/', views.about, name='about'),
     path('weather/', views.weather_view, name='weather'),
     path('fullnews/<slug:slug>/', views.news_detail, name='news_detail'),
-    path(
-        'set-password/<str:uidb64>/<str:token>/', 
-        views.set_password_confirm, 
-        name='set_password_confirm'
-    ),
-    path('get_news/', views.get_trending_news, name='news'),
-    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
-    path('signup/', views.signup_view, name='signup'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    
-    #password forget
-   path('forgot-password/', views.password_reset_request, name='password_reset_new'),
-    
-    # 2. THE FIX: You MUST define this exact name to stop the Admin redirect
-    path('forgot-password/done/', 
-         auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), 
-         name='password_reset_done'),
+    path('set-password/<str:uidb64>/<str:token>/', views.set_password_confirm,  name='set_password_confirm'),
+    path('get_news/', views.get_trending_news, name='get_news'),
 
-    # 3. The link from the email (needed for the next step)
+    #authentication and password reset 
+    path('login/', views.AjaxLoginView.as_view(), name='login'),
+    path('signup/', views.signup_view, name='signup'),
+    path('logout/', views.custom_logout_view, name='logout'), 
+
+    path('forgot-password/', views.password_reset_request, name='password_reset_new'),  
+    path('forgot-password/done/', 
+    auth_views.PasswordResetDoneView.as_view(template_name='user/password_reset_done.html'), 
+    name='password_reset_done'),  
     path('reset/<uidb64>/<token>/', 
-         auth_views.PasswordResetConfirmView.as_view(template_name="registration/password_reset_confirm.html"), 
-         name='password_reset_confirm'),
-    
-    
+    auth_views.PasswordResetConfirmView.as_view(template_name="user/password_reset_confirm.html"), 
+    name='password_reset_confirm'), 
+    path('password-reset-complete/',
+    auth_views.PasswordResetCompleteView.as_view(template_name='user/password_reset_complete.html'),
+    name='password_reset_complete'),  
+
     path('generate/', views.create_id_card, name='create_id_card'),
     path('card/<uuid:card_id>/', views.view_id_card, name='view_id_card'),
-    path('verify/<uuid:card_id>/', views.verify_id_card, name='verify_id_card'),
-    
-    
-    # path('forgot-password/', views.password_reset_request, name='password_reset_new'),
-    # path('reset-password-confirm/<str:uidb64>/<str:token>/', views.password_reset_confirm, name='password_reset_confirm'),
-    
-    # path('password-reset/', auth_views.PasswordResetView.as_view(template_name='registration/password_reset.html',success_url=reverse_lazy('password_reset_done')), name='password_reset_new'),
-    # path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='registration/password_reset_done.html'), name='password_reset_done'),
-    # path('password-reset/done/', views.password_reset, name='password_reset_done'),
+    path('card/<uuid:card_id>/approve/', views.approve_id_card, name='approve_id_card'),
+    path('card/<uuid:card_id>/reject/', views.reject_id_card, name='reject_id_card'),
+    path('verify/<uuid:card_id>/', views.verify_id_card, name='verify_id_card'), 
     path('log/', views.log_view, name='log'),
-    path('api/stocks/', views.get_stock_data, name='stock_api'),
+    
+    path('health/', views.health_check, name='health_check'),
     path("admin/", admin.site.urls),
-]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('chat/', include('chat.urls')),
+    path('faq/', views.faq_view, name='faq'),
+    path('user-manual/', views.user_manual_view, name='user_manual'),
+    # super admin dashboard and dynamic model management
+    path('secure-portal/dashboard/', custom_super_admin_dashboard, name='custom_admin_dashboard'),
+    path('secure-portal/<str:model_name>/', dynamic_model_list, name='dynamic_model_list'),
+    path('secure-portal/<str:model_name>/add/', dynamic_model_create, name='dynamic_model_create'),
+    path('secure-portal/<str:model_name>/edit/<str:pk>/', dynamic_model_edit, name='dynamic_model_edit'),
+    path('secure-portal/<str:model_name>/delete/<str:pk>/', dynamic_model_delete, name='dynamic_model_delete'),
+
+    # API endpoints for admin notifications and replies
+    path('api/admin/notifications/',views.api_admin_notifications, name='admin_notifications',),
+    path('api/admin/send-reply/',   views.api_admin_send_reply,  name='admin_send_reply',),
+ 
+    path('api/stock-live/', views.stock_live_api, name='stock_live_api'),
+    path('api/top-movers/', views.get_top_movers_api, name='get_top_movers_api'),
+]
+
+if settings.DEBUG:
+  urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# 2. Force handling for production on Render (DEBUG = False)
+else:
+  urlpatterns += [
+      re_path(
+          r'^media/(?P<path>.*)$',
+          serve,
+          {'document_root': settings.MEDIA_ROOT},
+      ),
+  ]
+
+
+ 
+handler400 = 'main_app.views.custom_bad_request_view'
+handler403 = 'main_app.views.custom_permission_denied_view'
+handler404 = 'main_app.views.custom_404_view'
+handler500 = 'main_app.views.custom_500_view'
+ 
