@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block title %}Editorial Support | The People's Era{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 40px auto; padding: 30px;" class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="font-size: 1.4rem; margin: 0; color: var(--text-main);">Editorial Support Channel</h2>
+        <span id="presence-status" style="font-size: 0.8rem; color: #9ca3af; font-weight: 600;">
+            <span id="presence-dot" style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#9ca3af; margin-right:6px;"></span>
+            Offline
+        </span>
+    </div>
+    
+    <!-- Chat Log Box -->
+    <div id="chat-log" style="height: 420px; overflow-y: auto; border: 1px solid var(--border-color); padding: 20px; border-radius: 12px; background: var(--bg-body); margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px;">
+        <!-- Pre-existing historical messages passed from views.py -->
+        {% for msg in initial_messages %}
+            <div style="max-width: 75%; padding: 12px 16px; border-radius: 12px; {% if msg.sender_email == request.user.email %}align-self: flex-end; background: var(--accent-color); color: white;{% else %}align-self: flex-start; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main);{% endif %}">
+                <small style="display: block; font-size: 0.7rem; opacity: 0.8; margin-bottom: 4px;">{{ msg.sender_email }}</small>
+                <span>{{ msg.content }}</span>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Input Form -->
+    <div style="display: flex; gap: 12px;">
+        <input type="text" id="chat-message-input" placeholder="Write your message or news tip..." style="flex-grow: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main);">
+        <button id="chat-message-submit" style="background-color: var(--accent-color); color: white; padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;">Send</button>
+    </div>
+
+    <div style="margin-top: 14px; text-align: right;">
+        <button id="ping-admin-btn" type="button" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 16px; border-radius: 8px; cursor: pointer;">
+            Ping admin
+        </button>
+    </div>
+</div>
+
+<script>
+    const userEmail = "{{ request.user.email|default:'guest@thepeoplesera.com' }}";
+    const roomName = userEmail.replace(/[@.]/g, '_');
+    const chatLog = document.getElementById('chat-log');
+    const presenceDot = document.getElementById('presence-dot');
+    const presenceStatus = document.getElementById('presence-status');
+    let lastMessageId = 0;
+
+    function setPresenceState(onlineUsers) {
+        const bothOnline = onlineUsers.length >= 2;
+        presenceDot.style.background = bothOnline ? '#10b981' : '#9ca3af';
+        presenceStatus.style.color = bothOnline ? '#10b981' : '#9ca3af';
+        presenceStatus.innerHTML = `
+            <span id="presence-dot" style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${bothOnline ? '#10b981' : '#9ca3af'}; margin-right:6px;"></span>
+            ${bothOnline ? 'Both online' : 'Waiting for admin'}
+        `;
+    }
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return '';
+    }
+
+    function appendMessage(senderEmail, message) {
+        const div = document.createElement('div');
+        const isMe = senderEmail === userEmail;
+        div.dataset.messageId = 'local';
+        div.style.maxWidth = '75%';
+        div.style.padding = '12px 16px';
+        div.style.borderRadius = '12px';
+        div.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
+        div.style.background = isMe ? 'var(--accent-color)' : 'var(--card-bg)';
+        div.style.color = isMe ? 'white' : 'var(--text-main)';
+        div.style.border = isMe ? 'none' : '1px solid var(--border-color)';
+
+        const senderLabel = document.createElement('small');
+        senderLabel.style.display = 'block';
+        senderLabel.style.fontSize = '0.7rem';
+        senderLabel.style.opacity = '0.8';
+        senderLabel.style.marginBottom = '4px';
+        senderLabel.textContent = senderEmail;
+
+        const messageText = document.createElement('span');
+        messageText.textContent = message;
+
+        div.appendChild(senderLabel);
+        div.appendChild(messageText);
+        chatLog.appendChild(div);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function loadMessages() {
+        fetch(`/chat/api/messages/${roomName}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.messages || !data.messages.length) return;
+
+                const newestId = data.messages[data.messages.length - 1].id;
+                if (newestId <= lastMessageId) return;
+
+                const existing = [...chatLog.children];
+                const existingIds = new Set(existing.map(node => Number(node.dataset.messageId)).filter(Boolean));
+                const newMessages = data.messages.filter(msg => !existingIds.has(msg.id));
+
+                newMessages.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.dataset.messageId = msg.id;
+                    div.style.maxWidth = '75%';
+                    div.style.padding = '12px 16px';
+                    div.style.borderRadius = '12px';
+                    div.style.alignSelf = (msg.sender_email === userEmail) ? 'flex-end' : 'flex-start';
+                    div.style.background = (msg.sender_email === userEmail) ? 'var(--accent-color)' : 'var(--card-bg)';
+                    div.style.color = (msg.sender_email === userEmail) ? 'white' : 'var(--text-main)';
+                    div.style.border = (msg.sender_email === userEmail) ? 'none' : '1px solid var(--border-color)';
+
+                    const senderLabel = document.createElement('small');
+                    senderLabel.style.display = 'block';
+                    senderLabel.style.fontSize = '0.7rem';
+                    senderLabel.style.opacity = '0.8';
+                    senderLabel.style.marginBottom = '4px';
+                    senderLabel.textContent = msg.sender_email;
+
+                    const messageText = document.createElement('span');
+                    messageText.textContent = msg.message;
+
+                    div.appendChild(senderLabel);
+                    div.appendChild(messageText);
+                    chatLog.appendChild(div);
+                });
+
+                lastMessageId = newestId;
+                chatLog.scrollTop = chatLog.scrollHeight;
+            })
+            .catch(() => {});
+    }
+
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${roomName}/`);
+
+    // Auto-scroll chat log to bottom on load
+    chatLog.scrollTop = chatLog.scrollHeight;
+    loadMessages();
+    setInterval(loadMessages, 2000);
+
+    document.getElementById('ping-admin-btn').onclick = function() {
+        fetch("{% url 'ping_admin' %}", {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const btn = document.getElementById('ping-admin-btn');
+                btn.textContent = 'Admin notified';
+                btn.disabled = true;
+            } else {
+                alert(data.message || 'Unable to send request to admin.');
+            }
+        })
+        .catch(() => {
+            window.showCustomError('Unable to send request to admin.');
+        });
+    };
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+
+        if (data.type === 'presence') {
+            setPresenceState(data.online_users || []);
+            return;
+        }
+
+        appendMessage(data.sender_email, data.message);
+        loadMessages();
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function() {
+        const inputDom = document.querySelector('#chat-message-input');
+        if (!inputDom.value.trim()) return;
+
+        chatSocket.send(JSON.stringify({
+            'message': inputDom.value,
+            'sender_email': userEmail
+        }));
+        inputDom.value = '';
+    };
+
+    document.querySelector('#chat-message-input').onkeypress = function(e) {
+        if (e.key === 'Enter') document.querySelector('#chat-message-submit').click();
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% block title %}Admin Inbox | The People's Era{% endblock %}
+
+{% block content %}
+<div style="max-width: 1100px; margin: 40px auto; display: grid; grid-template-columns: 300px 1fr; gap: 20px;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 1.2rem; margin: 0; color: var(--text-main);">Admin Chat Desk</h2>
+        <span id="presence-status" style="font-size: 0.8rem; color: #9ca3af; font-weight: 600;">
+            <span id="presence-dot" style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#9ca3af; margin-right:6px;"></span>
+            Offline
+        </span>
+    </div>
+
+    <!-- User Rooms List Sidebar -->
+    <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; background: var(--card-bg);">
+        <h3 style="font-size: 1.1rem; margin-bottom: 15px;">Pending Requests</h3>
+        {% if pending_requests %}
+            {% for room in pending_requests %}
+                <a href="?user={{ room.user_email }}" style="display: block; padding: 10px; border-radius: 8px; text-decoration: none; color: var(--text-main); margin-bottom: 8px; background: {% if active_user == room.user_email %}var(--bg-body){% else %}transparent{% endif %}; border: 1px solid var(--border-color);">
+                    <strong style="font-size: 0.85rem; display: block;">{{ room.user_email }}</strong>
+                    <small style="color: var(--text-muted); font-size: 0.75rem;">
+                        {% if room.unread_by_admin %}Unread: {{ room.unread_by_admin }}{% else %}New ping{% endif %}
+                    </small>
+                </a>
+            {% endfor %}
+        {% else %}
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">No pending requests.</p>
+        {% endif %}
+
+        <hr style="border: 0; border-top: 1px solid var(--border-color); margin: 20px 0 15px;">
+
+        <h3 style="font-size: 1.1rem; margin-bottom: 15px;">Active Reader Chats</h3>
+        {% for room in chat_rooms %}
+            <a href="?user={{ room.user_email }}" style="display: block; padding: 10px; border-radius: 8px; text-decoration: none; color: var(--text-main); margin-bottom: 6px; background: {% if active_user == room.user_email %}var(--bg-body){% else %}transparent{% endif %}; border: 1px solid var(--border-color);">
+                <strong style="font-size: 0.85rem; display: block;">{{ room.user_email }}</strong>
+                <small style="color: var(--text-muted); font-size: 0.75rem;">ID: {{ room.room_id }}</small>
+                {% if room.is_pending %}
+                    <span style="display:inline-block; margin-top:6px; background:#f59e0b; color:#fff; padding:3px 7px; border-radius:999px; font-size:0.68rem;">Pending</span>
+                {% endif %}
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- Active Chat Conversation View -->
+    <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; background: var(--card-bg);">
+        {% if active_user %}
+            <h3 style="margin-bottom: 15px; font-size: 1.2rem;">Chatting with: <span style="color: var(--accent-color);">{{ active_user }}</span></h3>
+
+            <div id="admin-chat-log" style="height: 380px; overflow-y: auto; border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; background: var(--bg-body); margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;">
+                {% for msg in initial_messages %}
+                    <div style="max-width: 75%; padding: 10px 14px; border-radius: 10px; {% if msg.sender_email == request.user.email %}align-self: flex-end; background: var(--accent-color); color: white;{% else %}align-self: flex-start; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main);{% endif %}">
+                        <small style="display: block; font-size: 0.68rem; opacity: 0.8;">{{ msg.sender_email }}</small>
+                        <span>{{ msg.content }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="admin-message-input" placeholder="Type reply as Admin..." style="flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <button id="admin-message-submit" style="background: var(--accent-color); color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Reply</button>
+            </div>
+        {% else %}
+            <p style="color: var(--text-muted); text-align: center; margin-top: 100px;">Select a user from the left sidebar to start chatting.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if active_user %}
+<script>
+    const adminEmail = "{{ request.user.email }}";
+    const targetUserEmail = "{{ active_user }}";
+    const roomName = targetUserEmail.replace(/[@.]/g, '_');
+    const chatLog = document.getElementById('admin-chat-log');
+    const presenceDot = document.getElementById('presence-dot');
+    const presenceStatus = document.getElementById('presence-status');
+    let lastMessageId = 0;
+
+    function setPresenceState(onlineUsers) {
+        const bothOnline = onlineUsers.length >= 2;
+        presenceDot.style.background = bothOnline ? '#10b981' : '#9ca3af';
+        presenceStatus.style.color = bothOnline ? '#10b981' : '#9ca3af';
+        presenceStatus.innerHTML = `
+            <span id="presence-dot" style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${bothOnline ? '#10b981' : '#9ca3af'}; margin-right:6px;"></span>
+            ${bothOnline ? 'Both online' : 'Waiting for user'}
+        `;
+    }
+
+    function appendMessage(senderEmail, message) {
+        const div = document.createElement('div');
+        const isMe = senderEmail === adminEmail;
+        div.style.maxWidth = '75%';
+        div.style.padding = '10px 14px';
+        div.style.borderRadius = '10px';
+        div.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
+        div.style.background = isMe ? 'var(--accent-color)' : 'var(--card-bg)';
+        div.style.color = isMe ? 'white' : 'var(--text-main)';
+        div.style.border = isMe ? 'none' : '1px solid var(--border-color)';
+
+        const senderLabel = document.createElement('small');
+        senderLabel.style.display = 'block';
+        senderLabel.style.fontSize = '0.68rem';
+        senderLabel.style.opacity = '0.8';
+        senderLabel.textContent = senderEmail;
+
+        const messageText = document.createElement('span');
+        messageText.textContent = message;
+
+        div.appendChild(senderLabel);
+        div.appendChild(messageText);
+        chatLog.appendChild(div);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    function loadMessages() {
+        fetch(`/chat/api/messages/${roomName}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.messages || !data.messages.length) return;
+
+                const newestId = data.messages[data.messages.length - 1].id;
+                if (newestId <= lastMessageId) return;
+
+                const existing = [...chatLog.children];
+                const existingIds = new Set(existing.map(node => Number(node.dataset.messageId)).filter(Boolean));
+                const newMessages = data.messages.filter(msg => !existingIds.has(msg.id));
+
+                newMessages.forEach(msg => {
+                    const div = document.createElement('div');
+                    div.dataset.messageId = msg.id;
+                    div.style.maxWidth = '75%';
+                    div.style.padding = '10px 14px';
+                    div.style.borderRadius = '10px';
+                    div.style.alignSelf = (msg.sender_email === adminEmail) ? 'flex-end' : 'flex-start';
+                    div.style.background = (msg.sender_email === adminEmail) ? 'var(--accent-color)' : 'var(--card-bg)';
+                    div.style.color = (msg.sender_email === adminEmail) ? 'white' : 'var(--text-main)';
+                    div.style.border = (msg.sender_email === adminEmail) ? 'none' : '1px solid var(--border-color)';
+
+                    const senderLabel = document.createElement('small');
+                    senderLabel.style.display = 'block';
+                    senderLabel.style.fontSize = '0.68rem';
+                    senderLabel.style.opacity = '0.8';
+                    senderLabel.textContent = msg.sender_email;
+
+                    const messageText = document.createElement('span');
+                    messageText.textContent = msg.message;
+
+                    div.appendChild(senderLabel);
+                    div.appendChild(messageText);
+                    chatLog.appendChild(div);
+                });
+
+                lastMessageId = newestId;
+                chatLog.scrollTop = chatLog.scrollHeight;
+            })
+            .catch(() => {});
+    }
+
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${roomName}/`);
+
+    chatLog.scrollTop = chatLog.scrollHeight;
+    loadMessages();
+    setInterval(loadMessages, 2000);
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+
+        if (data.type === 'presence') {
+            setPresenceState(data.online_users || []);
+            return;
+        }
+
+        appendMessage(data.sender_email, data.message);
+        loadMessages();
+    };
+
+    document.querySelector('#admin-message-submit').onclick = function() {
+        const inputDom = document.querySelector('#admin-message-input');
+        if (!inputDom.value.trim()) return;
+
+        chatSocket.send(JSON.stringify({
+            'message': inputDom.value,
+            'sender_email': adminEmail
+        }));
+        inputDom.value = '';
+    };
+</script>
+{% endif %}
+{% endblock %}
