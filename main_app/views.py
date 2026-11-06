@@ -41,10 +41,7 @@ from django.apps import apps
 from django.contrib.admin.views.decorators import staff_member_required
 from datetime import datetime, timedelta
 import pytz
-from django_ratelimit.decorators import ratelimit
-
-
-
+from django_ratelimit.decorators import ratelimit 
 
 GNEWS_CACHE_KEY = 'gnews_top_headlines'
 INEWS_CACHE_KEY='inews_top_headlines'
@@ -1532,8 +1529,7 @@ def user_manual_view(request):
 
 def custom_logout_view(request):
     logout(request)
-    response = redirect('/')
-    # Clear any caching headers so the browser doesn't load stale protected pages on refresh
+    response = redirect('/') 
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
