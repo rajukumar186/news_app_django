@@ -201,6 +201,7 @@ TEMPLATES = [
                 'main_app.context_processors.sidebar_promotions',
                 'main_app.context_processors.google_analytics',
             ],
+            'libraries': {},
         },
     },
 ]
