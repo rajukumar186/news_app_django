@@ -169,20 +169,37 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "my_project.urls"
 
+# TEMPLATES = [
+#     {
+#         "BACKEND": "django.template.backends.django.DjangoTemplates",
+#         "DIRS": [],
+#         "APP_DIRS": True,
+#         "OPTIONS": {
+#             "context_processors": [
+#                 "django.template.context_processors.request",
+#                 "django.contrib.auth.context_processors.auth",
+#                 'django.template.context_processors.request',
+#                 "django.contrib.messages.context_processors.messages",
+#                 'main_app.context_processors.sidebar_promotions',
+#                 'main_app.context_processors.google_analytics',
+               
+#             ],
+#         },
+#     },
+# ]
 TEMPLATES = [
     {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],  # Adjust to your project's template directory if needed
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
-                "django.contrib.messages.context_processors.messages",
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
                 'main_app.context_processors.sidebar_promotions',
                 'main_app.context_processors.google_analytics',
-               
             ],
         },
     },
