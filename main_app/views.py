@@ -1185,6 +1185,9 @@ SYMBOLS_MAP = {
 }
 
 def stocks_view(request):
+  if settings.DEBUG:
+      
+      return JsonResponse({"status": "debug", "message": "Debug mode active. Live stock API is not available."})
   """Renders the dashboard using live market data and auto-refreshes the page in the browser."""
   cache_key = 'stocks_view_dashboard_snapshot'
   snapshot = cache.get(cache_key)
@@ -1337,6 +1340,9 @@ def is_nse_market_open():
 
 
 def stock_live_api(request):
+  if settings.DEBUG:
+    print("Debug mode active. Live stock API is not available.")
+    return JsonResponse({"status": "debug", "message": "Debug mode active. Live stock API is not available."})
   """Real-time live ticker API endpoint with caching and IST market hour checks."""
   # 1. If market is closed, immediately return last synced data without hitting yfinance
   if not is_nse_market_open():
@@ -1398,6 +1404,10 @@ def stock_live_api(request):
 
 
 def get_top_movers_api(request):
+  if settings.DEBUG: 
+      print("Debug mode active. Live stock API is not available.")
+      return JsonResponse({"status": "debug", "message": "Debug mode active. Live stock API is not available."})
+  
   """Calculates Top Gainers & Losers with caching to prevent rate-limiting."""
   # Check cache first (valid for 60 seconds)
   cached_movers = cache.get("cached_market_movers")

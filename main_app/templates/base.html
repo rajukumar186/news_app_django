@@ -923,13 +923,7 @@
                 <li><a href="/weather">Weather</a></li>
                 <li><a href="/stocks">Stocks</a></li>
                 
-                {% if user.is_authenticated %}
-                    <li>
-                        <a href="{% url 'support_chat' %}" aria-label="Chat with admin" title="Chat with admin" style="display:inline-flex; align-items:center; gap:8px;">
-                            <i class="fa-solid fa-message" style="font-size:1rem;"></i>
-                            <span>Chat</span>
-                        </a>
-                    </li>
+                {% if user.is_authenticated %} 
                     <li><a href="/news">Publish News Artical</a></li>
                     <li><a href="/log">Visitors</a></li>
                     <li><a href="{% url 'profile' %}">My Profile</a></li>

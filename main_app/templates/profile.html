@@ -19,7 +19,7 @@
     }
 
     .profile-page-wrapper > * {
-        margin: 8px;
+        margin: 0;
     }
 
     .upload-card {
@@ -27,8 +27,8 @@
         min-width: 0;
         background: var(--card-bg);
         padding: 30px;
-       
-        border-radius: 12px;
+        margin: 15px;
+        border-radius: 0px;
         border: 1px solid var(--border-color);
         box-shadow: 0 4px 15px var(--shadow);
         box-sizing: border-box;
@@ -38,9 +38,10 @@
         flex: 0 0 380px;
         max-width: 100%;
         background: var(--card-bg);
-        border-radius: 12px;
+        border-radius: 0;
         overflow: hidden;
         margin-top: 20px;
+        margin: 15px;
         box-shadow: 0 4px 15px var(--shadow);
         border: 1px solid var(--border-color);
         position: relative;
@@ -71,7 +72,8 @@
 
     .profile-info {
         padding: 20px;
-        text-align: center;
+        text-align: left;
+        margin: 10px;
     }
 
     .profile-details {
@@ -85,6 +87,7 @@
     .detail-item {
         display: flex;
         justify-content: space-between;
+        align-items: center;
         padding: 10px 0;
         border-bottom: 1px solid var(--border-color);
         font-size: 0.9rem;
@@ -95,6 +98,40 @@
     .detail-item .label {
         font-weight: 700;
         color: var(--primary-color);
+    }
+
+    /* --- Paragraph-like Input Styling --- */
+    .detail-item input {
+        width: 60%;
+        padding: 2px 4px;
+        border-radius: 0;
+        border: none;
+        background: transparent;
+        color: var(--text-main);
+        font-size: 0.9rem;
+        font-family: inherit;
+        text-align: right;
+        box-sizing: border-box;
+        outline: none;
+        pointer-events: none; /* Uneditable by default until edit mode activates */
+    }
+
+    /* When editing mode is active, enable input and give it a subtle editable underline look */
+    .editing-mode .detail-item input {
+        pointer-events: auto;
+        /* background: var(--card-bg);  */
+        padding: 4px 8px;
+        text-align: left;
+
+    }
+    .profile-info h1,p { 
+        text-align: center;
+        
+}
+
+    .editing-mode .detail-item input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.1);
     }
 
     /* --- Form Styling --- */
@@ -126,56 +163,24 @@
         transition: opacity 0.2s;
     }
 
-    .profile-edit-box {
-        background: var(--bg-color);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 18px;
-        margin-top: 18px;
-        box-sizing: border-box;
-    }
-
-    .profile-edit-box h4 {
-        margin: 0 0 12px;
-        color: var(--text-main);
-    }
-
-    .profile-edit-form {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .profile-edit-row {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-    }
-
-    .profile-edit-form input {
-        width: 100%;
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        background: var(--card-bg);
-        color: var(--text-main);
-        box-sizing: border-box;
-    }
-
     .profile-edit-actions {
-        display: flex;
+        display: none; 
         gap: 10px;
-        margin-top: 6px;
+        margin-top: 15px;
     }
 
     .profile-edit-actions button,
     .profile-edit-actions .secondary-btn {
         flex: 1;
-        min-height: 44px;
-        border-radius: 10px;
+        min-height: 40px;
+        border-radius: 4px;
         border: none;
         cursor: pointer;
         font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
     }
 
     .profile-edit-actions button {
@@ -188,9 +193,6 @@
         color: var(--text-main);
         border: 1px solid var(--border-color);
         text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
     }
 
     .profile-action-stack {
@@ -279,17 +281,15 @@
             height: 82px;
         }
 
-        .profile-edit-row {
-            grid-template-columns: 1fr;
-        }
-
-        .profile-edit-actions {
-            flex-direction: column;
-        }
-
         .detail-item {
             flex-direction: column;
+            align-items: flex-start;
             gap: 4px;
+        }
+
+        .detail-item input {
+            width: 100%;
+            text-align: left;
         }
     }
 </style>
@@ -298,8 +298,7 @@
 {% block content %}
 <div class="profile-page-wrapper">
     
-   
-    <aside class="profile-sidebar">
+    <aside class="profile-sidebar" id="profile-sidebar-container">
         <div class="profile-banner"></div>
 
         <div class="profile-picture-wrapper">
@@ -308,91 +307,77 @@
         </div>
 
         <div class="profile-info">
-            <h1 style="font-size: 1.5rem; color: var(--text-main); font-weight: 800;">
+            <h1 style="font-size: 1.5rem; color: var(--text-main); font-weight: 800;" id="display-name">
                 {{ user.first_name|default:user.username }}
             </h1>
             <p style="color: var(--text-muted); font-size: 0.9rem;">
                 Member since {{ user.date_joined|date:"F Y" }}
             </p>
 
-            <div class="profile-details" id="profile-summary">
-                <div class="detail-item">
-                    <span class="label">Username</span>
-                    <span data-profile-field="username">{{ user.username }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="label">Email</span>
-                    <span data-profile-field="email">{{ user.email|default:"Not provided" }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="label">Account</span>
-                    <span>{% if user.is_staff %}Staff{% else %}Standard{% endif %}</span>
-                </div>
-            </div>
+            <!-- Inline Profile Edit Form Wrapper -->
+            <form method="post" class="profile-edit-form">
+                {% csrf_token %}
+                <input type="hidden" name="profile_submit" value="1">
 
-            <div class="profile-action-stack">
-                <button type="button" id="toggle-profile-edit" class="profile-action-btn">
-                    Edit Profile
-                </button>
+                <div class="profile-details" id="profile-summary">
+                    <div class="detail-item">
+                        <span class="label">First Name</span>
+                        {{ profile_form.first_name }}
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Last Name</span>
+                        {{ profile_form.last_name }}
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Email</span>
+                        {{ profile_form.email }}
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Username</span>
+                        <span style="color: var(--text-main); font-size: 0.9rem;">{{ user.username }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="label">Account</span>
+                        <span style="color: var(--text-main); font-size: 0.9rem;">{% if user.is_staff %}Staff{% else %}Standard{% endif %}</span>
+                    </div>
+                </div>
 
-                {% if user_card and user_card.is_approved %}
-                    <a href="{% url 'view_id_card' card_id=user_card.id %}" class="profile-action-link">
-                        View ID card
-                    </a>
-                {% elif user_card %}
-                    <a href="#" class="profile-action-link pending">
-                        Pending Approval
-                    </a>
-                {% else %}
-                    <a href="{% url 'create_id_card' %}" class="profile-action-link">
-                        Apply for ID card
-                    </a>
+                {% if profile_form.errors %}
+                    <div style="color: #dc2626; font-size: 0.8rem; margin-bottom: 10px;">
+                        {{ profile_form.errors }}
+                    </div>
                 {% endif %}
-            </div>
 
-            <div id="profile-edit-box" class="profile-edit-box" style="display: none;">
-                <h4>Edit Profile</h4>
-                <form method="post" class="profile-edit-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="profile_submit" value="1">
+                <!-- Action buttons and edit toggles -->
+                <div class="profile-action-stack" id="profile-action-stack">
+                    <button type="button" id="toggle-profile-edit" class="profile-action-btn">
+                        Edit Profile
+                    </button>
 
-                    <div class="profile-edit-row">
-                        <div>
-                            <label for="id_username" style="font-weight: 700; display: block; margin-bottom: 6px; color: var(--text-main);">Username</label>
-                            {{ profile_form.username }}
-                        </div>
-                        <div>
-                            <label for="id_email" style="font-weight: 700; display: block; margin-bottom: 6px; color: var(--text-main);">Email</label>
-                            {{ profile_form.email }}
-                        </div>
-                    </div>
-
-                    <div class="profile-edit-row">
-                        <div>
-                            <label for="id_first_name" style="font-weight: 700; display: block; margin-bottom: 6px; color: var(--text-main);">First Name</label>
-                            {{ profile_form.first_name }}
-                        </div>
-                        <div>
-                            <label for="id_last_name" style="font-weight: 700; display: block; margin-bottom: 6px; color: var(--text-main);">Last Name</label>
-                            {{ profile_form.last_name }}
-                        </div>
-                    </div>
-
-                    {% if profile_form.errors %}
-                        <div style="color: #dc2626; font-size: 0.8rem;">
-                            {{ profile_form.errors }}
-                        </div>
+                    {% if user_card and user_card.is_approved %}
+                        <a href="{% url 'view_id_card' card_id=user_card.id %}" class="profile-action-link">
+                            View ID card
+                        </a>
+                    {% elif user_card %}
+                        <a href="#" class="profile-action-link pending">
+                            Pending Approval
+                        </a>
+                    {% else %}
+                        <a href="{% url 'create_id_card' %}" class="profile-action-link">
+                            Apply for ID card
+                        </a>
                     {% endif %}
+                </div>
 
-                    <div class="profile-edit-actions">
-                        <button type="submit">Save</button>
-                        <a href="{% url 'profile' %}" class="secondary-btn">Cancel</a>
-                    </div>
-                </form>
-            </div>
+                <div class="profile-edit-actions" id="profile-edit-actions">
+                    <button type="submit">Save Changes</button>
+                    <a href="{% url 'profile' %}" class="secondary-btn">Cancel</a>
+                </div>
+            </form>
         </div>
     </aside>
-     {% if user.is_authenticated and user.is_superuser %}
+
+    {% if user.is_authenticated and user.is_superuser %}
      <section class="upload-card">
          <h3 style="margin-bottom: 25px; font-weight: 800; color: var(--text-main);">
              Post a New Clip
@@ -412,34 +397,25 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const toggleBtn = document.getElementById('toggle-profile-edit');
-        const editBox = document.getElementById('profile-edit-box');
+        const editActions = document.getElementById('profile-edit-actions');
+        const sidebarContainer = document.getElementById('profile-sidebar-container');
+        const idCardLink = document.querySelector('.profile-action-link');
 
-        const syncEditFormWithProfile = () => {
-            const username = document.querySelector('[data-profile-field="username"]')?.textContent?.trim() || '';
-            const email = document.querySelector('[data-profile-field="email"]')?.textContent?.trim() || '';
-            const firstName = '{{ user.first_name|escapejs }}';
-            const lastName = '{{ user.last_name|escapejs }}';
+        let isEditing = false;
 
-            const usernameInput = document.querySelector('#id_username');
-            const emailInput = document.querySelector('#id_email');
-            const firstNameInput = document.querySelector('#id_first_name');
-            const lastNameInput = document.querySelector('#id_last_name');
-
-            if (usernameInput) usernameInput.value = username;
-            if (emailInput) emailInput.value = email;
-            if (firstNameInput) firstNameInput.value = firstName;
-            if (lastNameInput) lastNameInput.value = lastName;
-        };
-
-        if (toggleBtn && editBox) {
+        if (toggleBtn) {
             toggleBtn.addEventListener('click', function () {
-                const isHidden = editBox.style.display === 'none';
-                if (isHidden) {
-                    syncEditFormWithProfile();
-                    editBox.style.display = 'block';
-                    toggleBtn.textContent = 'Close Edit';
+                isEditing = !isEditing;
+                
+                if (isEditing) {
+                    sidebarContainer.classList.add('editing-mode');
+                    editActions.style.display = 'flex';
+                    if (idCardLink) idCardLink.style.display = 'none';
+                    toggleBtn.textContent = 'Cancel Edit';
                 } else {
-                    editBox.style.display = 'none';
+                    sidebarContainer.classList.remove('editing-mode');
+                    editActions.style.display = 'none';
+                    if (idCardLink) idCardLink.style.display = 'inline-flex';
                     toggleBtn.textContent = 'Edit Profile';
                 }
             });
