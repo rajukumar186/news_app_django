@@ -239,7 +239,7 @@
         .card {
             background: rgba(255, 255, 255, 0.9);
             padding: 25px;
-            border-radius: 16px;
+            border-radius: 0;
             box-shadow: 0 8px 24px var(--shadow);
             
             margin: 15px;
@@ -1063,7 +1063,7 @@
                     <span style="position: absolute; top: 0; right: 10px; font-size: 0.6rem; color: var(--text-muted);">SPONSORED</span>
                     <a href="{{ promo.target_url }}" target="_blank" style="text-decoration: none; color: inherit;">
                         {% if promo.ad_image %}
-                            <img src="{{ promo.ad_image.url }}" alt="{{ promo.business_name }}" style="width: 100%; border-radius: 8px; margin-bottom: 10px;">
+                            <img src="{{ promo.ad_image.url }}" alt="{{ promo.business_name }}" style="width: 100%; border-radius: 0; margin-bottom: 10px;">
                         {% endif %}
                         <h4 style="font-size: 1rem; margin-bottom: 5px;">{{ promo.promotion_title }}</h4>
                         <p style="font-size: 0.8rem; opacity: 0.8;">{{ promo.business_name }}</p>
@@ -1072,7 +1072,7 @@
                 {% endfor %}
                 <div class="card">
                     <h3 class="sidebar-title">Partner with us</h3>
-                    <div style="height: 100px; background: var(--bg-color); border: 2px dashed var(--border-color); display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 10px;">
+                    <div style="height: 100px; background: var(--bg-color); border: 2px dashed var(--border-color); display: flex; align-items: center; justify-content: center; border-radius: 0; margin-bottom: 10px;">
                         <span style="color: var(--text-muted); font-size: 0.8rem; text-align:center;">Want to see your business here? <br> 10 $ / week</span>
                     </div>
                     <a href="{% url 'promotion' %}" style="color: var(--primary-color); font-weight: bold; font-size: 0.8rem;">Create a Promotion →</a>

@@ -172,7 +172,7 @@
 
     .featured-slider {
         overflow: hidden;
-        border-radius: 22px;
+        border-radius: 0;
         border: 1px solid var(--border-color);
         background: var(--card-bg);
         box-shadow: var(--shadow-sm);
@@ -537,9 +537,9 @@
 
     /* 5. RESPONSIVE DESIGN */
     @media (max-width: 1100px) {
-        .news-grid { grid-template-columns: repeat(2, 1fr); gap: 25px; }
+        .news-grid { grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 0px; }
         .news-card { grid-column: span 1 !important; }
-        .img-container { height: 250px !important; }
+        .img-container { height: 391px !important; }
     }
 
     @media (max-width: 650px) {

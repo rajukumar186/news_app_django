@@ -125,7 +125,7 @@
 
     }
     .profile-info h1,p { 
-        text-align: center;
+        text-align: left;
         
 }
 
@@ -252,10 +252,12 @@
             width: 100%;
             order: -1;
             position: static;
+            margin: 0;
         }
 
         .upload-card {
             width: 100%;
+            margin: 0;
         }
     }
 
@@ -299,8 +301,9 @@
 <div class="profile-page-wrapper">
     
     <aside class="profile-sidebar" id="profile-sidebar-container">
-        <div class="profile-banner"></div>
+        <div class="profile-banner">
 
+        </div> 
         <div class="profile-picture-wrapper">
             <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random&size=128" 
                  alt="Profile" class="profile-img">
