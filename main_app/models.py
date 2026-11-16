@@ -150,7 +150,7 @@ class IDCard(models.Model):
     is_new = self._state.adding
     if is_new:
       super().save(*args, **kwargs)
-
+    print(settings.site_url)
     # 3. Generate QR code pointing to the verification URL with this card's UUID
     # Replace '127.0.0.1:8000' with your live domain in production
     verification_url = f'{settings.site_url}/verify/{self.id}/'

@@ -534,7 +534,28 @@
     .share-trigger i {
         font-size: 0.95rem;
     }
+    /* Mobile-only horizontal slider tabs */
+    @media (max-width: 768px) {
+        .news-filter-bar {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Smooth momentum scrolling on iOS */
+            gap: 8px; /* Spacing between tabs */
+            padding: 0px 12px;
+            scrollbar-width: none; /* Hides scrollbar in Firefox */
+        }
 
+        /* Hides scrollbar in Chrome, Safari, and Edge */
+        .news-filter-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .news-filter-btn {
+            flex: 0 0 auto; /* Prevents buttons from shrinking or wrapping onto two lines */
+            white-space: nowrap; /* Keeps multi-word labels on a single line */
+        }
+    }
     /* 5. RESPONSIVE DESIGN */
     @media (max-width: 1100px) {
         .news-grid { grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 0px; }
@@ -630,7 +651,7 @@
                                      
                                 </div>
                                 <h3>{{ article.title }}</h3>
-                                <p>{{ article.description|default:"No description available."|truncatewords:24 }}</p>
+                                <!-- <p>{{ article.description|default:"No description available."|truncatewords:10 }}</p> -->
                                 <div class="featured-meta" style="margin-top: 14px; justify-content: flex-start; gap: 16px;">
                                     <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="read-btn">Full Story →</a>
                                     <button type="button" class="share-trigger" data-title="{{ article.title|escapejs }}" data-url="{{ request.build_absolute_uri }}?source={{ article.url|urlencode }}" aria-label="Share article" style="position: static; width: 32px; height: 32px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center;">
@@ -727,6 +748,21 @@
 
 {% block extra_js %}
 <script>
+     
+    document.addEventListener("DOMContentLoaded", function () {
+        if (window.innerWidth <= 768) {
+            const activeTab = document.querySelector(".news-filter-bar .news-filter-btn.active");
+            if (activeTab) {
+                activeTab.scrollIntoView({
+                    behavior: "smooth",
+                    inline: "center",
+                    block: "nearest"
+                });
+            }
+        }
+    });
+ 
+
     function dismissNotice(elementId) {
         const el = document.getElementById(elementId);
         if (el) {

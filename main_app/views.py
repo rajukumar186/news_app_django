@@ -457,10 +457,55 @@ def superadmin_dashboard(request):
     return render(request, 'superadmin.html', context)
 
 
+# @login_required
+# def profile_view(request):
+#     user_card = IDCard.objects.filter(user=request.user).order_by('-created_at').first()
+#     profile_form = ProfileEditForm(instance=request.user)
+
+#     if request.method == 'POST':
+#         if 'profile_submit' in request.POST:
+#             profile_form = ProfileEditForm(request.POST, instance=request.user)
+#             if profile_form.is_valid():
+#                 profile_form.save()
+#                 messages.success(request, 'Your profile has been updated successfully.')
+#                 return redirect('profile')
+#         else:
+#             form = VideoUploadForm(request.POST, request.FILES)
+#             if form.is_valid():
+#                 video_instance = form.save(commit=False) # Create object but don't save yet
+                
+#                 # 1. Get IP
+#                 client_ip, is_routable = get_client_ip(request)
+#                 video_instance.uploader_ip = client_ip
+                
+#                 # 2. Get Location
+#                 try:
+#                     handler = ipinfo.getHandler(getattr(settings, 'IPINFO_TOKEN', None))
+#                     details = handler.getDetails(client_ip)
+#                     video_instance.uploader_location = f"{details.city}, {details.country_name}"
+#                 except:
+#                     video_instance.uploader_location = "Unknown"
+                
+#                 # 3. Get Device Info
+#                 video_instance.uploader_device = request.META.get('HTTP_USER_AGENT', 'Unknown')
+                
+#                 video_instance.save() # Now save everything to DB
+#                 return redirect('home')
+#     else:
+#         form = VideoUploadForm()
+
+#     return render(request, 'profile.html', {
+#         'form': form,
+#         'profile_form': profile_form,
+#         'user_card': user_card,
+#     })
 @login_required
 def profile_view(request):
     user_card = IDCard.objects.filter(user=request.user).order_by('-created_at').first()
+    
+    # 1. Initialize both forms upfront to prevent UnboundLocalError
     profile_form = ProfileEditForm(instance=request.user)
+    form = VideoUploadForm()
 
     if request.method == 'POST':
         if 'profile_submit' in request.POST:
@@ -483,7 +528,7 @@ def profile_view(request):
                     handler = ipinfo.getHandler(getattr(settings, 'IPINFO_TOKEN', None))
                     details = handler.getDetails(client_ip)
                     video_instance.uploader_location = f"{details.city}, {details.country_name}"
-                except:
+                except Exception:
                     video_instance.uploader_location = "Unknown"
                 
                 # 3. Get Device Info
@@ -491,8 +536,6 @@ def profile_view(request):
                 
                 video_instance.save() # Now save everything to DB
                 return redirect('home')
-    else:
-        form = VideoUploadForm()
 
     return render(request, 'profile.html', {
         'form': form,
@@ -1469,7 +1512,7 @@ def create_id_card(request):
             id_card.user = request.user
             id_card.email = request.user.email or form.cleaned_data.get('email')
             id_card.save()
-            return redirect('view_id_card', card_id=id_card.id)
+            return redirect('profile')
     else:
         form = IDCardForm(initial={'email': request.user.email})
     return render(request, 'create_form.html', {'form': form})

@@ -290,7 +290,7 @@ TIME_ZONE = 'Asia/Kolkata'
 
 # This tells Django where to collect static files for production
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

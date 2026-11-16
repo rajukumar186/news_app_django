@@ -32,9 +32,12 @@ from main_app.views import (
     dynamic_model_delete,
     ajax_send_otp,
 )
+from main_app.pwa import service_worker, web_manifest
 
 
 urlpatterns = [ 
+    path('manifest.webmanifest', web_manifest, name='pwa_manifest'),
+    path('service-worker.js', service_worker, name='service_worker'),
    
     
     path('toggle-theme/', views.toggle_theme, name='toggle_theme'),
