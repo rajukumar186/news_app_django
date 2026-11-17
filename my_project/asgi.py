@@ -1,7 +1,8 @@
 # my_project/asgi.py
 import os
 from django.core.asgi import get_asgi_application
-
+from dotenv import load_dotenv
+load_dotenv()
 # 1. MUST BE FIRST: Set the default Django settings module environment variable
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'my_project.settings') # Replace 'my_project.settings' with your actual settings module path if different
 

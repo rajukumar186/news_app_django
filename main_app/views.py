@@ -42,6 +42,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from datetime import datetime, timedelta
 import pytz
 from django_ratelimit.decorators import ratelimit 
+from chat.rag_service import ingest_combined_news_to_rag
 
 GNEWS_CACHE_KEY = 'gnews_top_headlines'
 INEWS_CACHE_KEY='inews_top_headlines'
@@ -748,8 +749,72 @@ def get_gnews_articles(category='general'):
     print(f'Error fetching GNews: {e}')
     return []
 
-
 def home(request):
+    posts = NewsPost.objects.all().order_by('-created_at')
+    videos = VideoPost.objects.all().order_by('-uploaded_at')
+    active_notice = SiteNotice.objects.filter(is_active=True).first()
+    selected_category = (request.GET.get('category') or 'general').strip().lower()
+    selected_category = selected_category if selected_category in {
+        'general', 'world', 'business', 'technology', 'sports', 'entertainment', 'health', 'science', 'nation'
+    } else 'general'
+
+    cache_key = f'{GNEWS_CACHE_KEY}:{selected_category}'
+    articles = cache.get(cache_key)
+    if articles is None:
+        print(f'Cache miss: Fetching fresh data from GNews API for {selected_category}')
+        articles = get_gnews_articles(selected_category)
+        cache.set(cache_key, articles, GNEWS_CACHE_TIMEOUT)
+
+    indian_articles = cache.get(INEWS_CACHE_KEY)
+    if indian_articles is None:
+        print("Cache miss: Fetching fresh data from INews API")
+        api_key = settings.NEWS_API_KEY
+        indian_articles = get_india_news(api_key)
+        cache.set(INEWS_CACHE_KEY, indian_articles, 900)
+
+    news_categories = [
+        {'value': 'general', 'label': 'All'},
+        {'value': 'world', 'label': 'World'},
+        {'value': 'business', 'label': 'Business'},
+        {'value': 'technology', 'label': 'Technology'},
+        {'value': 'sports', 'label': 'Sports'},
+        {'value': 'entertainment', 'label': 'Entertainment'},
+        {'value': 'health', 'label': 'Health'},
+        {'value': 'science', 'label': 'Science'},
+    ]
+
+    combined_news = []
+    for article in articles:
+        combined_news.append({**article, 'section_type': 'global', 'display_source': article.get('source') or 'Global'})
+    for article in indian_articles:
+        combined_news.append({**article, 'section_type': 'india', 'display_source': article.get('source') or 'India'})
+
+    featured_news = combined_news[:5]
+    remaining_news = combined_news[5:]
+
+    # --- RAG SYNC INTEGRATION ---
+    # Automatically sync combined news into ChromaDB on homepage load
+    try:
+        ingest_combined_news_to_rag(combined_news)
+    except Exception as e:
+        print(f"⚠️ Error syncing homepage news to RAG: {e}")
+    # ----------------------------
+
+    context = {
+        'posts': posts,
+        'videos': videos,
+        'api_news': articles,
+        'india_news': indian_articles,
+        'combined_news': combined_news,
+        'featured_news': featured_news,
+        'remaining_news': remaining_news,
+        'active_notice': active_notice,
+        'selected_category': selected_category,
+        'news_categories': news_categories,
+    }
+
+    return render(request, 'home.html', context)
+def home_old(request):
   posts = NewsPost.objects.all().order_by('-created_at')
   videos = VideoPost.objects.all().order_by('-uploaded_at')
   active_notice = SiteNotice.objects.filter(is_active=True).first()

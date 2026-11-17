@@ -63,7 +63,7 @@
         }
 
         body.dark-mode {
-            --bg-color: #07080c;
+            --bg-color: #050505d7;
             --header-bg: #111827;
             --card-bg: #1f2937;
             --text-main: #f8fafc;
@@ -84,7 +84,7 @@
         }
 
         body.dark-mode {
-            background: linear-gradient(180deg, #0b1120 0%, var(--bg-color) 100%);
+            background: linear-gradient(180deg, #0b0b0c 0%, var(--bg-color) 100%);
         }
 
         .goog-te-banner-frame, .goog-te-banner, .goog-gt-tt, .goog-te-balloon-frame, .skiptranslate, #goog-gt-tt {
@@ -237,6 +237,9 @@
             box-shadow: 0 8px 24px var(--shadow);
             margin: 15px;
             backdrop-filter: blur(10px);
+        }
+        .card h3{
+            border-bottom: 3px solid var(--h3-border-color, #e0e0e050);
         }
 
         body.dark-mode .card {
@@ -1179,13 +1182,13 @@
                         <ul style="list-style: none; padding: 0; margin: 0;">
                             {% for news in trending_news %}
                             <li style="margin-bottom: 15px; border-bottom: 1px solid #f9f9f9; padding-bottom: 10px;">
-                                <a href="{{ news.link }}" target="_blank" style="text-decoration: none; color: #0b1fda; font-weight: 600; font-size: 14px; display: block; line-height: 1.4;">
+                                <a href="{{ news.link }}" target="_blank" style="text-decoration: none;   font-weight: 600; font-size: 14px; display: block; line-height: 1.4;">
                                     {{ news.title }}
                                 </a>
                                 <small style="color: #888; font-size: 11px;">{{ news.published }}</small>
                             </li>
                             {% empty %}
-                            <p style="color: #666; font-size: 14px;">Loading trending news...</p>
+                            <p style="  font-size: 14px;">Loading trending news...</p>
                             {% endfor %}
                         </ul>
                     </div>
@@ -1510,22 +1513,11 @@
         const chatPopupInput = document.getElementById('chat-popup-input');
         const chatPopupSend = document.getElementById('chat-popup-send');
         const chatPopupLog = document.getElementById('chat-popup-log');
-        const chatRoomSelect = document.getElementById('chat-room-select');
+        
         const userEmail = "{{ user.email|default:'guest@thepeoplesera.com' }}";
         const roomName = userEmail.replace(/[@.]/g, '_');
-        const roomTemplates = {
-            support: roomName,
-            community: 'community_chat_room'
-        };
         const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
         let chatSocket = null;
-        let lastPopupMessageId = 0;
-        let activeRoomName = roomName;
-
-        function getActiveRoomName() {
-            if (!chatRoomSelect) return roomName;
-            return roomTemplates[chatRoomSelect.value] || roomName;
-        }
 
         function getCookie(name) {
             const value = `; ${document.cookie}`;
@@ -1535,86 +1527,32 @@
         }
 
         function formatChatTimestamp(value) {
-            if (!value) return '';
-            const date = new Date(value);
+            const date = value ? new Date(value) : new Date();
             if (Number.isNaN(date.getTime())) return '';
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        function setMessageStatus(statusEl, seen) {
-            if (!statusEl) return;
-            statusEl.textContent = seen ? '✓✓' : '✓';
-            statusEl.style.color = seen ? '#dbeafe' : '#f8fafc';
-            statusEl.title = seen ? 'Seen' : 'Delivered';
-        }
-
-        function attachSeenToggle(bubble, statusEl) {
-            if (!bubble || !statusEl || bubble.dataset.seenToggleBound === 'true') return;
-            bubble.dataset.seenToggleBound = 'true';
-            bubble.addEventListener('dblclick', function() {
-                const seen = bubble.dataset.seen === 'true';
-                bubble.dataset.seen = String(!seen);
-                setMessageStatus(statusEl, !seen);
-            });
-        }
-
-        function createChatMessageMetaRow(isMine, timestamp, messageId = 0) {
-            const metaRow = document.createElement('div');
-            metaRow.style.display = 'flex';
-            metaRow.style.alignItems = 'center';
-            metaRow.style.justifyContent = isMine ? 'flex-end' : 'flex-start';
-            metaRow.style.gap = '6px';
-            metaRow.style.marginTop = '8px';
-            metaRow.style.fontSize = '0.7rem';
-            metaRow.style.opacity = '0.9';
-
-            const timeText = formatChatTimestamp(timestamp);
-            if (timeText) {
-                const time = document.createElement('span');
-                time.textContent = timeText;
-                time.style.color = isMine ? '#f8fafc' : 'var(--text-muted)';
-                metaRow.appendChild(time);
-            }
-
-            if (isMine) {
-                const status = document.createElement('span');
-                status.dataset.messageStatus = 'sent';
-                status.style.fontWeight = '700';
-                status.style.letterSpacing = '0.04em';
-                const seenState = Boolean(messageId && Number(messageId) % 2 === 0);
-                setMessageStatus(status, seenState);
-                metaRow.appendChild(status);
-            }
-
-            return metaRow;
-        }
-
         function ensureChatSocket() {
-            const targetRoom = getActiveRoomName();
-            if (chatSocket && chatSocket.readyState === WebSocket.OPEN && activeRoomName === targetRoom) return;
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) return;
 
             if (chatSocket) {
                 chatSocket.close();
                 chatSocket = null;
             }
 
-            activeRoomName = targetRoom;
-            chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${activeRoomName}/`);
+            chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${roomName}/`);
+
+            chatSocket.onopen = function() {
+                console.log("WebSocket connection established successfully.");
+            };
 
             chatSocket.onmessage = function(e) {
                 const data = JSON.parse(e.data);
                 if (!data || !data.message) return;
 
-                const messageId = Number(data.message_id || data.id || 0);
-                const existingIds = [...chatPopupLog.children]
-                    .map(node => Number(node.dataset.messageId))
-                    .filter(id => Number.isFinite(id));
-
-                if (messageId && existingIds.includes(messageId)) return;
-
                 const bubble = document.createElement('div');
                 const isMe = data.sender_email === userEmail;
-                if (messageId) bubble.dataset.messageId = String(messageId);
+                
                 bubble.style.maxWidth = '82%';
                 bubble.style.padding = '12px 16px';
                 bubble.style.borderRadius = isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px';
@@ -1629,7 +1567,7 @@
                 senderLabel.style.fontSize = '0.7rem';
                 senderLabel.style.opacity = '0.8';
                 senderLabel.style.marginBottom = '4px';
-                senderLabel.textContent = isMe ? 'You' : 'Assistant';
+                senderLabel.textContent = isMe ? 'You' : 'Era Assistant';
 
                 const messageText = document.createElement('span');
                 messageText.textContent = data.message;
@@ -1638,70 +1576,28 @@
 
                 bubble.appendChild(senderLabel);
                 bubble.appendChild(messageText);
-                const metaRow = createChatMessageMetaRow(isMe, data.timestamp, messageId);
-                bubble.dataset.seen = String(isMe ? Boolean(messageId && Number(messageId) % 2 === 0) : false);
+
+                // Timestamp row
+                const metaRow = document.createElement('div');
+                metaRow.style.display = 'flex';
+                metaRow.style.justifyContent = isMe ? 'flex-end' : 'flex-start';
+                metaRow.style.marginTop = '6px';
+                metaRow.style.fontSize = '0.7rem';
+                metaRow.style.opacity = '0.8';
+                metaRow.textContent = formatChatTimestamp(data.timestamp);
+                
                 bubble.appendChild(metaRow);
-                const statusEl = metaRow.querySelector('[data-message-status]');
-                if (statusEl) attachSeenToggle(bubble, statusEl);
                 chatPopupLog.appendChild(bubble);
                 chatPopupLog.scrollTop = chatPopupLog.scrollHeight;
             };
-        }
 
-        function fetchLatestPopupMessages() {
-            if (!chatPopupLog) return;
-            const targetRoom = getActiveRoomName();
-            fetch(`/chat/api/messages/${targetRoom}/`)
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.messages || !data.messages.length) return;
+            chatSocket.onerror = function(err) {
+                console.error("WebSocket error observed:", err);
+            };
 
-                    const newestId = data.messages[data.messages.length - 1].id;
-                    if (newestId <= lastPopupMessageId) return;
-
-                    const existingIds = [...chatPopupLog.children]
-                        .map(node => Number(node.dataset.messageId))
-                        .filter(id => Number.isFinite(id));
-
-                    const newMessages = data.messages.filter(msg => !existingIds.includes(msg.id));
-                    newMessages.forEach(msg => {
-                        const isMe = (msg.sender_email === userEmail);
-                        const div = document.createElement('div');
-                        div.dataset.messageId = String(msg.id);
-                        div.style.maxWidth = '82%';
-                        div.style.padding = '12px 16px';
-                        div.style.borderRadius = isMe ? '18px 18px 4px 18px' : '18px 18px 18px 4px';
-                        div.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
-                        div.style.background = isMe ? 'var(--primary-color)' : 'var(--header-bg)';
-                        div.style.color = isMe ? '#fff' : 'var(--text-main)';
-                        div.style.border = isMe ? 'none' : '1px solid var(--border-color)';
-                        div.style.boxShadow = '0 2px 8px var(--shadow)';
-
-                        const senderLabel = document.createElement('small');
-                        senderLabel.style.display = 'block';
-                        senderLabel.style.fontSize = '0.7rem';
-                        senderLabel.style.opacity = '0.8';
-                        senderLabel.style.marginBottom = '4px';
-                        senderLabel.textContent = isMe ? 'You' : 'Assistant';
-
-                        const messageText = document.createElement('span');
-                        messageText.textContent = msg.message;
-                        messageText.style.display = 'block';
-                        messageText.style.lineHeight = '1.5';
-
-                        div.appendChild(senderLabel);
-                        div.appendChild(messageText);
-                        const metaRow = createChatMessageMetaRow(isMe, msg.timestamp, msg.id);
-                        div.dataset.seen = String(isMe ? Boolean(msg.id && Number(msg.id) % 2 === 0) : false);
-                        div.appendChild(metaRow);
-                        const statusEl = metaRow.querySelector('[data-message-status]');
-                        if (statusEl) attachSeenToggle(div, statusEl);
-                        chatPopupLog.appendChild(div);
-                    });
-                    lastPopupMessageId = newestId;
-                    chatPopupLog.scrollTop = chatPopupLog.scrollHeight;
-                })
-                .catch(() => {});
+            chatSocket.onclose = function() {
+                console.log("WebSocket connection closed.");
+            };
         }
 
         function openChatPopup() {
@@ -1710,7 +1606,6 @@
             chatPopupOverlay.setAttribute('aria-hidden', 'false');
             document.body.style.overflow = 'hidden';
             ensureChatSocket();
-            fetchLatestPopupMessages();
         }
 
         function closeChatPopup() {
@@ -1718,19 +1613,6 @@
             chatPopupOverlay.classList.remove('show');
             chatPopupOverlay.setAttribute('aria-hidden', 'true');
             document.body.style.overflow = '';
-        }
-
-        function switchChatRoom() {
-            if (!chatPopupLog) return;
-            const selectedRoom = getActiveRoomName();
-            activeRoomName = selectedRoom;
-            chatPopupLog.innerHTML = '';
-            lastPopupMessageId = 0;
-
-            if (chatPopupOverlay && chatPopupOverlay.classList.contains('show')) {
-                ensureChatSocket();
-                fetchLatestPopupMessages();
-            }
         }
 
         if (openChatPopupBtn) {
@@ -1752,20 +1634,20 @@
             if (!value) return;
 
             ensureChatSocket();
-            chatSocket.send(JSON.stringify({
-                'message': value,
-                'sender_email': userEmail,
-                'room_name': activeRoomName || roomName
-            }));
-            chatPopupInput.value = '';
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                chatSocket.send(JSON.stringify({
+                    'message': value,
+                    'sender_email': userEmail,
+                    'room_name': roomName
+                }));
+                chatPopupInput.value = '';
+            } else {
+                window.showCustomError("Chat connection is reconnecting. Please try again.");
+            }
         }
 
         if (chatPopupSend) {
             chatPopupSend.addEventListener('click', sendPopupMessage);
-        }
-
-        if (chatRoomSelect) {
-            chatRoomSelect.addEventListener('change', switchChatRoom);
         }
 
         if (chatPopupInput) {
@@ -1782,10 +1664,6 @@
                 sendPopupMessage();
             });
         });
-
-        if (chatPopupLog) {
-            setInterval(fetchLatestPopupMessages, 2000);
-        }
         
         menuBtn.addEventListener('click', () => {
             navMenu.classList.toggle('active');

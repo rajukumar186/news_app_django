@@ -29,6 +29,7 @@ if not SECRET_KEY:
 
 NEWS_API_KEY = os.getenv('NEWS_API_KEY', '')
 GNEWS_API_KEY = os.getenv('GNEWS_API_KEY', '')
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
 DEFAULT_ALLOWED_HOSTS = 'localhost,127.0.0.1,0.0.0.0,thepeoplesera.com,www.thepeoplesera.com'
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', DEFAULT_ALLOWED_HOSTS).split(',') if host.strip()]

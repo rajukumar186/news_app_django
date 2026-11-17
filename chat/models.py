@@ -1,5 +1,6 @@
 # chat/models.py
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class ChatRoom(models.Model):
@@ -23,3 +24,18 @@ class Message(models.Model):
 
     def __str__(self):
         return f"[{self.timestamp}] {self.sender_email}: {self.content[:30]}"
+
+
+class ChatSession(models.Model):
+    STATUS_CHOICES = [
+        ('ai', 'AI Active'),
+        ('pending', 'Waiting for Support Executive'),
+        ('human', 'Connected to Human Agent'),
+        ('closed', 'Closed'),
+    ]
+    
+    session_id = models.CharField(max_length=100, unique=True)
+    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ai')
+    assigned_agent = models.ForeignKey(User, null=True, blank=True, related_name='assigned_chats', on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)

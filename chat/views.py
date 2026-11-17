@@ -6,9 +6,31 @@ from django.http import JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 from .models import ChatRoom, Message
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .rag_service import query_django_rag
 
 User = get_user_model()
 
+
+@csrf_exempt
+def chat_api_view(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            user_message = data.get("message", "")
+            
+            if not user_message:
+                return JsonResponse({"error": "Message cannot be empty"}, status=400)
+                
+            # Run RAG query pulling from cache
+            bot_reply = query_django_rag(user_message)
+            
+            return JsonResponse({"reply": bot_reply})
+        except Exception as e:
+            return JsonResponse({"error": str.upper(str(e))}, status=500)
+            
+    return JsonResponse({"error": "Only POST requests allowed"}, status=405)
 
 def get_or_create_user_room(user_email):
     room_id = user_email.replace('@', '_').replace('.', '_')
